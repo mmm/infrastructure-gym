@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+[ ! -z "${TRACE:-}" ] && set -x
+
+usage() {
+  echo """
+  usage: $0 [-l <layer>] [-a <action>]
+    where
+      action is one of 'plan', 'apply', or 'destroy'
+      layer is 'core', etc
+  """
+}
+
+log() {
+  echo "* [${2:-INFO}] $1"
+}
+
+die() {
+  log >&2 "$1" "ERROR"
+  exit 1
+}
+
+check_args() {
+  if [ -z "$action" ] || [ -z "$layer" ]; then
+    usage
+    die 'need args'
+  fi
+}
+
+check_ansible_archive() {
+	s3cmd \
+	  --access_key="${TF_VAR_aws_access_key_id}" \
+	  --secret_key="${TF_VAR_aws_secret_access_key}" \
+	  --host="${TF_VAR_stack_region}.digitaloceanspaces.com" \
+	  --host-bucket="%(bucket)s.${TF_VAR_stack_region}.digitaloceanspaces.com" \
+	  ls s3://${state_bucket}/ansible/ansible.tar.gz | grep -qs ansible \
+	|| die "No ansible archive in s3://${state_bucket}/ansible/ansible.tar.gz"
+}
+
+init_terraform() {
+  terraform init \
+    -backend-config "bucket=${state_bucket}" \
+    -backend-config "key=${state_key}" \
+    -backend-config "region=us-west-2" \
+    -backend-config "endpoint=https://${TF_VAR_stack_region}.digitaloceanspaces.com" \
+    -backend-config "access_key=${TF_VAR_aws_access_key_id}" \
+    -backend-config "secret_key=${TF_VAR_aws_secret_access_key}" \
+    -backend-config "skip_credentials_validation=true" \
+    -backend-config "skip_get_ec2_platforms=true" \
+    -backend-config "skip_requesting_account_id=true" \
+    -backend-config "skip_metadata_api_check=true" \
+    -force-copy \
+    || die 'failed to init terraform'
+}
+
+run_terraform() {
+  terraform $action \
+    -var "region=${region}" \
+    -var "layer=${layer}" \
+    -var "environment=${env}" \
+    -var "state_bucket=${state_bucket}" \
+    -var-file "${workspace_dir}/terraform.tfvars" \
+    || die 'failed to run terraform'
+}
+
+graph_terraform() {
+  #Options:
+
+    #-draw-cycles   Highlight any cycles in the graph with colored edges.
+                   #This helps when diagnosing cycle errors.
+
+    #-no-color      If specified, output won't contain any color.
+
+    #-type=plan     Type of graph to output. Can be: plan, plan-destroy, apply,
+                   #validate, input, refresh.
+
+  terraform $action \
+    -type=plan-destroy \
+    || die 'failed to run terraform graph'
+}
+
+action=
+layer=
+while getopts ':a:l:' OPT; do
+  case $OPT in
+    a) action=$OPTARG ;;
+    l) layer=$OPTARG ;;
+  esac
+done
+
+check_args
+
+region=ams3
+project=demo
+env=prod
+state_bucket="${TF_VAR_stack_state_bucket}" #"do-stacks-ams3"
+state_key="state/${env}/${layer}.tfstate"
+
+# change into the directory for the particular layer
+project_dir=$(git rev-parse --show-toplevel)
+workspace_dir="${project_dir}/workspace"
+cd ${project_dir}/terraform/layers/${layer} \
+  || die "failed to find layer $layer"
+
+# clean up any cruft
+[ -d .terraform ] && rm -rf .terraform
+
+check_ansible_archive # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
+#create_state_bucket
+init_terraform
+case $action in
+  graph)
+    graph_terraform
+    ;;
+  *)
+    run_terraform
+    ;;
+esac
+
+#if [ "${action}" == "destroy" ]; then
+  #remove_state
+#fi

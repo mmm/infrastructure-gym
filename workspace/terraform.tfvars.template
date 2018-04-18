@@ -1,0 +1,4 @@
+ssh_keys = [
+    "78:83:b8:af:9c:aa:a8:27:93:8b:ae:0b:cf:45:27:b7", # first ssh pubkey fingerprint
+    "cb:02:af:57:0d:d9:71:de:64:3e:53:cf:3f:1b:62:b8", # another ssh pubkey fingerprint
+]
