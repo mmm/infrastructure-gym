@@ -16,4 +16,4 @@ s3cmd \
   get s3://${bucket}/ansible/ansible.tar.gz - | tar xz -C $${stacks_dir}
 
 export ANSIBLE_VAULT_PASSWORD="${ansible_vault_password}"
-$${stacks_dir}/ansible/bin/provision "$@"
+$${stacks_dir}/ansible/bin/provision "${ansible_role}" "$@"

@@ -23,12 +23,43 @@ data "terraform_remote_state" "core" {
   }
 }
 
+resource "digitalocean_tag" "role_bastion" {
+  name = "role:bastion"
+}
+
 module "jump_droplets" {
   source = "../../modules/jump_droplet"
   count = 2 
   region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
+    "${data.terraform_remote_state.core.digitalocean_tag_jump_id}",
+    "${digitalocean_tag.role_bastion.id}",
+  ]
+  ansible_tarball = {
+    access_key = "${var.aws_access_key_id}"
+    secret_key = "${var.aws_secret_access_key}"
+    region = "${var.region}"
+    bucket = "${var.stack_state_bucket}"
+    vault_password = "${var.ansible_vault_password}"
+    role = "${digitalocean_tag.role_bastion.name}"
+  }
+}
+
+resource "digitalocean_tag" "role_consul" {
+  name = "role:consul"
+}
+
+module "consul_droplets" {
+  source = "../../modules/dev_droplet"
+  droplet_name = "consul"
+  count = 3 
+  ssh_keys = ["${var.ssh_keys}"]
+  tags = [
+    "${data.terraform_remote_state.core.digitalocean_tag_dev_id}",
+    "${digitalocean_tag.role_consul.id}",
+  ]
+  source_tags = [
     "${data.terraform_remote_state.core.digitalocean_tag_jump_id}",
   ]
   ansible_tarball = {
@@ -37,6 +68,6 @@ module "jump_droplets" {
     region = "${var.region}"
     bucket = "${var.stack_state_bucket}"
     vault_password = "${var.ansible_vault_password}"
+    role = "${digitalocean_tag.role_consul.name}"
   }
 }
-

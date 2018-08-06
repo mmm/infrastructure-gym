@@ -1,5 +1,5 @@
 #!/bin/bash
 
-logger "mmm - this is a provisioner script"
+logger "mmm - this is a provisioner script.  this instance is in an ansible role of: $@"
 
 ansible-playbook 
