@@ -1,2 +1,12 @@
 tmp
+
+.envrc
+
+.terraform
 *.tfvars
+
+backend.tf
+
+terraform/userdata/default.sh
+
+*.tar.gz

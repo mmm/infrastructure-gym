@@ -1,0 +1,11 @@
+
+# for terraform to use the DO provider API
+export TF_VAR_digitalocean_token="token"
+
+# to store terraform state in DO Spaces
+export TF_VAR_aws_access_key_id="access-key"
+export TF_VAR_aws_secret_access_key="secret-key"
+
+export TF_VAR_stack_state_bucket="some-state-bucket"
+export TF_VAR_stack_region="ams3"
+export TF_VAR_ansible_vault_password="some-vault-secret"
