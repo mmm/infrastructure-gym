@@ -1,4 +1,8 @@
 
+variable "region" {
+  default = "ams3"
+}
+
 variable "droplet_name" {
   default = "jump"
 }

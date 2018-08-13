@@ -14,7 +14,7 @@ resource "digitalocean_droplet" "jump" {
   count = "${var.count}"
   image = "ubuntu-16-04-x64"
   name = "${var.droplet_name}-${count.index}"
-  region = "ams3"
+  region = "${var.region}"
   size = "s-1vcpu-1gb"
   ssh_keys = ["${var.ssh_keys}"]
   tags = ["${var.tags}"]
@@ -23,7 +23,7 @@ resource "digitalocean_droplet" "jump" {
 
 resource "digitalocean_floating_ip" "jump" {
   count = "${var.count}"
-  region = "ams3"
+  region = "${var.region}"
   droplet_id = "${element(digitalocean_droplet.jump.*.id, count.index)}"
 }
 
