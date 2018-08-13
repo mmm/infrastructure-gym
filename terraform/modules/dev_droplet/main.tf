@@ -11,43 +11,35 @@ data "template_file" "userdata" {
   }
 }
 
-resource "digitalocean_droplet" "jump" {
+resource "digitalocean_volume" "dev_home" {
+  count = "${var.count}"
+  name = "${var.droplet_name}-${count.index}-home"
+  region = "${var.region}"
+  size = 500
+}
+
+resource "digitalocean_droplet" "dev" {
   count = "${var.count}"
   image = "ubuntu-16-04-x64"
   name = "${var.droplet_name}-${count.index}"
   region = "${var.region}"
-  size = "s-1vcpu-1gb"
+  size = "s-4vcpu-8gb"
   ssh_keys = ["${var.ssh_keys}"]
   tags = ["${var.tags}"]
+  volume_ids = ["${element(digitalocean_volume.dev_home.*.id, count.index)}"]
   user_data = "${data.template_file.userdata.rendered}"
 }
 
-resource "digitalocean_floating_ip" "jump" {
-  count = "${var.count}"
-  region = "${var.region}"
-  droplet_id = "${element(digitalocean_droplet.jump.*.id, count.index)}"
-}
+resource "digitalocean_firewall" "dev" {
+  name = "22-from-jump"
 
-resource "digitalocean_firewall" "jump" {
-  name = "22-and-443-from-anywhere"
-
-  droplet_ids = ["${digitalocean_droplet.jump.*.id}"]
+  droplet_ids = ["${digitalocean_droplet.dev.*.id}"]
 
   inbound_rule = [
     {
       protocol           = "tcp"
       port_range         = "22"
-      source_addresses   = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol           = "tcp"
-      port_range         = "443"
-      source_addresses   = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol           = "udp"
-      port_range         = "63000-63100"
-      source_addresses   = ["0.0.0.0/0", "::/0"]
+      source_tags        = ["${var.source_tags}"]
     },
   ]
 
