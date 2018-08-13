@@ -26,6 +26,7 @@ data "terraform_remote_state" "core" {
 module "jump_droplets" {
   source = "../../modules/jump_droplet"
   count = 2 
+  region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
     "${data.terraform_remote_state.core.digitalocean_tag_jump_id}",
@@ -33,7 +34,7 @@ module "jump_droplets" {
   ansible_tarball = {
     access_key = "${var.aws_access_key_id}"
     secret_key = "${var.aws_secret_access_key}"
-    region = "${var.stack_region}"
+    region = "${var.region}"
     bucket = "${var.stack_state_bucket}"
     vault_password = "${var.ansible_vault_password}"
   }

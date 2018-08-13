@@ -32,8 +32,8 @@ check_ansible_archive() {
 	s3cmd \
 	  --access_key="${TF_VAR_aws_access_key_id}" \
 	  --secret_key="${TF_VAR_aws_secret_access_key}" \
-	  --host="${TF_VAR_stack_region}.digitaloceanspaces.com" \
-	  --host-bucket="%(bucket)s.${TF_VAR_stack_region}.digitaloceanspaces.com" \
+	  --host="${TF_VAR_region}.digitaloceanspaces.com" \
+	  --host-bucket="%(bucket)s.${TF_VAR_region}.digitaloceanspaces.com" \
 	  ls s3://${state_bucket}/ansible/ansible.tar.gz | grep -qs ansible \
 	|| die "No ansible archive in s3://${state_bucket}/ansible/ansible.tar.gz"
 }
@@ -43,7 +43,7 @@ init_terraform() {
     -backend-config "bucket=${state_bucket}" \
     -backend-config "key=${state_key}" \
     -backend-config "region=us-west-2" \
-    -backend-config "endpoint=https://${TF_VAR_stack_region}.digitaloceanspaces.com" \
+    -backend-config "endpoint=https://${TF_VAR_region}.digitaloceanspaces.com" \
     -backend-config "access_key=${TF_VAR_aws_access_key_id}" \
     -backend-config "secret_key=${TF_VAR_aws_secret_access_key}" \
     -backend-config "skip_credentials_validation=true" \
@@ -91,7 +91,7 @@ done
 
 check_args
 
-region=ams3
+region="${TF_VAR_region:-ams3}"
 project=demo
 env=prod
 state_bucket="${TF_VAR_stack_state_bucket}" #"do-stacks-ams3"
