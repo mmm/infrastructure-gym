@@ -1,0 +1,19 @@
+---
+
+- name: install packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - "{{ packages }}"
+
+- name: hostname
+  hostname:
+    name: "{{ hostname }}"
+
+- name: /etc/hosts
+  lineinfile:
+    dest: /etc/hosts
+    line: "{{ private_ipv4_address }}\t{{ ansible_hostname }}.{{ consul_domain }}\t{{ ansible_hostname }}"
+    state: present
+

@@ -1,4 +1,16 @@
 
+variable "project" {
+  default = ""
+}
+
+variable "environment" {
+  default = ""
+}
+
+variable "layer" {
+  default = ""
+}
+
 variable "region" {
   default = "ams3"
 }

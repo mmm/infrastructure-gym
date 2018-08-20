@@ -1,0 +1,17 @@
+# Listen on all interfaces
+interface=eth1
+
+addn-hosts=/etc/hosts
+
+server=8.8.8.8
+server=8.8.4.4
+
+# configure DNS resolution to consul servers
+server=/{{ consul_domain }}/127.0.0.1#8600
+server=/{{ consul_service_domain }}/127.0.0.1#8600
+
+# reverse lookups
+server=/{{ dnsmasq.rev_cidr }}.in-addr.arpa/127.0.0.1#8600
+{% for ip in dnsmasq.additional_rev_cidr -%}
+  server=/{{ ip }}.in-addr.arpa/127.0.0.1#8600
+{% endfor %}

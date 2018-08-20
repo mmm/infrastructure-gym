@@ -2,12 +2,15 @@
 data "template_file" "userdata" {
   template = "${file("../../userdata/default.sh.tpl")}"
   vars = {
-    ansible_vault_password = "${var.ansible_tarball["vault_password"]}"
-    access_key = "${var.ansible_tarball["access_key"]}"
-    secret_key = "${var.ansible_tarball["secret_key"]}"
+    project = "${var.ansible_tarball["project"]}"
+    environment = "${var.ansible_tarball["environment"]}"
     region = "${var.ansible_tarball["region"]}"
     bucket = "${var.ansible_tarball["bucket"]}"
     ansible_role = "${var.ansible_tarball["role"]}"
+    digitalocean_token = "${var.ansible_tarball["digitalocean_token"]}"
+    ansible_vault_password = "${var.ansible_tarball["vault_password"]}"
+    access_key = "${var.ansible_tarball["access_key"]}"
+    secret_key = "${var.ansible_tarball["secret_key"]}"
   }
 }
 
@@ -28,6 +31,7 @@ resource "digitalocean_droplet" "dev" {
   tags = ["${var.tags}"]
   volume_ids = ["${element(digitalocean_volume.dev_home.*.id, count.index)}"]
   user_data = "${data.template_file.userdata.rendered}"
+  private_networking = true
 }
 
 resource "digitalocean_firewall" "dev" {
@@ -39,6 +43,38 @@ resource "digitalocean_firewall" "dev" {
     {
       protocol           = "tcp"
       port_range         = "22"
+      source_tags        = ["dev"]
+    },
+  ]
+
+  outbound_rule = [
+    {
+      protocol                = "icmp"
+      port_range              = "1-65535"
+      destination_addresses   = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      protocol                = "tcp"
+      port_range              = "1-65535"
+      destination_addresses   = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      protocol                = "udp"
+      port_range              = "1-65535"
+      destination_addresses   = ["0.0.0.0/0", "::/0"]
+    },
+  ]
+}
+
+resource "digitalocean_firewall" "dev2dev" {
+  name = "dev-to-dev"
+
+  droplet_ids = ["${digitalocean_droplet.dev.*.id}"]
+
+  inbound_rule = [
+    {
+      protocol           = "tcp"
+      port_range         = "1-65535"
       source_tags        = ["${var.source_tags}"]
     },
   ]

@@ -1,20 +1,21 @@
 
-variable "digitalocean_token" {}
+variable "project" {}
+variable "environment" {}
+variable "layer" {}
+
+variable "region" {}
+variable "state_bucket" {}
 
 variable "aws_access_key_id" {}
 variable "aws_secret_access_key" {}
-variable "region" {}
-variable "stack_state_bucket" {}
 variable "ansible_vault_password" {}
-variable "state_bucket" {}
-variable "environment" {}
-variable "layer" {}
+variable "digitalocean_token" {}
 
 variable "ssh_keys" {
   default = []
 }
 
-output "jump_ipv4_address_list" {
-  value = "${module.jump_droplets.ipv4_address_list}"
+output "bastion_ipv4_address_list" {
+  value = "${module.bastions.ipv4_address_list}"
 }
 

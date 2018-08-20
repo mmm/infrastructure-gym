@@ -1,0 +1,4 @@
+timeout 300;
+retry 60;
+append domain-name " {{ consul_domain }}";
+supersede domain-name-servers 127.0.0.1;

@@ -1,0 +1,52 @@
+---
+
+- name: install consul python package
+  pip:
+    name: python-consul
+    state: present
+
+- name: group
+  group:
+    name: consul
+    system: yes
+    state: present
+
+- name: user
+  user:
+    name: consul
+    group: consul
+    comment: Hashicorp Consul
+    createhome: no
+    system: yes
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: create dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: consul
+    group: consul
+    mode: 0755
+  with_items:
+    - /etc/consul.d
+    - /usr/share/consul
+    - /var/lib/consul
+
+- name: download
+  get_url:
+    url:  "{{ consul.download_url }}/{{ consul.version }}/{{ item.src }}"
+    dest: "{{ consul.download_dir }}/{{ item.src }}"
+    sha256sum: "{{ item.sha256sum }}"
+  retries: 3
+  delay: 10
+  with_items:
+    - "{{ consul.consul_bin }}"
+
+- name: unzip
+  unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: True
+  with_items:
+   - { src: "{{ consul.download_dir }}/{{ consul.consul_bin.src }}", dest: "{{ consul.install_dir }}" }
