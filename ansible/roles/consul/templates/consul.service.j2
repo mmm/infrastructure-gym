@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=Consul Agent
+#After=dnsmasq.service
+
+[Service]
+EnvironmentFile=-/etc/default/consul
+Environment=GOMAXPROCS=`nproc`
+User=consul
+Group=consul
+ExecStart={{ consul.install_dir }}/consul agent \
+  -config-dir=/etc/consul.d \
+  -bind={{ private_ipv4_address }}
+
+[Install]
+WantedBy=default.target

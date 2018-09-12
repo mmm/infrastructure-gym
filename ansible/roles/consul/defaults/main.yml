@@ -1,0 +1,16 @@
+---
+
+consul_ansible_host: consul_server
+consul_version: 1.2.2
+consul_server_env: "{{ env }}"
+
+consul:
+  bootstrap_expect: "{% if groups[consul_ansible_host] is defined %}{{ groups[consul_ansible_host] | length - 1 }}{% endif %}"
+  consul_bin: { src: "consul_{{ consul_version }}_linux_amd64.zip", sha256sum: 7fa3b287b22b58283b8bd5479291161af2badbc945709eb5412840d91b912060 }
+  download_dir: /tmp
+  download_url: https://releases.hashicorp.com/consul
+  install_dir: /usr/local/bin
+  sudo_script_dir:
+    - /opt/infra/ansible/bin/
+    - /opt/infra/bin/
+  version: "{{ consul_version }}"

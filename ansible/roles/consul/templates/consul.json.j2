@@ -1,0 +1,19 @@
+{
+  "datacenter": "{{ consul_dc }}",
+  "advertise_addr": "{{ private_ipv4_address }}",
+  "node_name": "{{ ansible_hostname }}",
+  "rejoin_after_leave": true,
+  "domain": "{{ consul_tld }}",
+  "retry_join": ["provider=digitalocean region={{ region }} tag_name={{ project }}:{{ env }}:ansible_role:consul_server api_token={{ digitalocean_token }}"],
+{% if consul_is_server is defined %}
+  "server": true,
+  "bootstrap_expect": {{ consul.bootstrap_expect }},
+{% endif %}
+  "data_dir": "/var/lib/consul",
+  "ui_dir": "/usr/share/consul",
+  "disable_remote_exec": true,
+  "dns_config": {
+    "allow_stale": true,
+    "max_stale": "5s"
+  }
+}

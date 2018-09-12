@@ -1,0 +1,14 @@
+---
+
+- name: restart dnsmasq
+  service:
+    name: dnsmasq
+    state: restarted
+
+- name: update resolvconf
+  command: resolvconf -u
+
+- name: restart network
+  service:
+    name: network
+    state: restarted

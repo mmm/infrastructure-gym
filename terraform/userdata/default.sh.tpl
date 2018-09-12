@@ -13,7 +13,12 @@ s3cmd \
   --secret_key="${secret_key}" \
   --host="${region}.digitaloceanspaces.com" \
   --host-bucket="%(bucket)s.${region}.digitaloceanspaces.com" \
-  get s3://${bucket}/ansible/ansible.tar.gz - | tar xz -C $${stacks_dir}
+  get s3://${bucket}/infrastructure/${project}/${environment}/ansible/ansible.tar.gz - | tar xz -C $${stacks_dir}
 
-export ANSIBLE_VAULT_PASSWORD="${ansible_vault_password}"
-$${stacks_dir}/ansible/bin/provision "${ansible_role}" "$@"
+$${stacks_dir}/ansible/bin/provision \
+  -p"${project}" \
+  -e"${environment}" \
+  -o"${ansible_role}" \
+  -r"${region}" \
+  -t"${digitalocean_token}" \
+  -v"${ansible_vault_password}"

@@ -1,0 +1,71 @@
+---
+
+- hosts: localhost
+  gather_facts: yes
+  tags: always
+  tasks:
+    - name: create timestamp file
+      lineinfile:
+        line: "started {{ ansible_date_time.iso8601_micro }}"
+        dest: "/tmp/ansible.timestamp"
+        create: yes
+      changed_when: false
+      tags: environment_status_reporting
+    #- name: record ansible start
+      #s3:
+        #bucket: "{{ project }}-{{ env }}-infrastructure"
+        #mode: put
+        #src: "/tmp/ansible.timestamp"
+        #object: "build/{{ ansible_default_ipv4.address }}.started"
+      #changed_when: false
+      #tags: environment_status_reporting
+    - name: Update apt-cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+- hosts: localhost
+  roles:
+    - { role: common, tags: common }
+    - { role: consul, tags: consul }
+    #- { role: directory_services, when: directory_services_enabled, tags: directory_services }
+    #- { role: cfssl, tags: cfssl }
+    #- { role: java, tags: java }
+    #- { role: Datadog.datadog, when: monitoring_enabled, tags: datadog }
+    #- { role: inspector, when: inspector_enabled, tags: inspector }
+
+#- hosts: kdc
+  #roles:
+    #- { role: kdc, tags: kdc }
+
+#- hosts: logstash
+  #roles:
+    #- { role: logstash, tags: logstash }
+
+#- hosts: kibana
+  #roles:
+    #- { role: kibana, tags: kibana }
+    #- { role: elastalert, tags: elastalert }
+
+#- hosts: vault
+  #roles:
+    #- { role: vault, tags: vault }
+
+- hosts: localhost
+  tasks:
+    - name: create timestamp file
+      lineinfile:
+        line: "completed {{ ansible_date_time.iso8601_micro }}"
+        dest: "/tmp/ansible.timestamp"
+        create: yes
+      changed_when: false
+      tags: environment_status_reporting
+    #- name: record ansible completion
+      #s3:
+        #bucket: "{{ project }}-{{ env }}-infrastructure"
+        #mode: put
+        #src: "/tmp/ansible.timestamp"
+        #object: "build/{{ ansible_default_ipv4.address }}.completed"
+      #changed_when: false
+      #tags: environment_status_reporting

@@ -1,0 +1,31 @@
+---
+
+- name: install
+  package:
+    name: dnsmasq
+    state: present
+
+- name: config
+  template:
+    src: 10-consul
+    dest: /etc/dnsmasq.d/10-consul
+  notify: restart dnsmasq
+
+- name: add localhost resolve
+  lineinfile:
+    dest: /etc/resolvconf/resolv.conf.d/head
+    line: "nameserver 127.0.0.1"
+    state: present
+
+- name: add search domain - Debian
+  lineinfile:
+    dest: /etc/resolvconf/resolv.conf.d/base
+    line: "search {{ consul_domain }}"
+    state: present
+  notify: update resolvconf
+
+- name: enable dnsmasq
+  service:
+    name: dnsmasq
+    enabled: yes
+    state: started

@@ -1,5 +1,105 @@
 #!/bin/bash
 
-logger "mmm - this is a provisioner script.  this instance is in an ansible role of: $@"
+set -eo pipefail
+[ ! -z "${TRACE:-}" ] && set -x
 
-ansible-playbook 
+log() {
+  echo "* [${2:-INFO}] $1"
+}
+
+die() {
+  log >&2 "$1" "ERROR"
+  exit 1
+}
+
+usage() {
+  echo """
+  usage: $0 [-p <project>] [-e <environment>] [-o <role>] [-r <region>] [-t <api_token>] [-v <vault_pw>]
+    where
+    p) project=$OPTARG ;;
+    e) environment=$OPTARG ;;
+    o) role=$OPTARG ;;
+    r) region=$OPTARG ;;
+    t) token=$OPTARG ;;
+    v) vault_password=$OPTARG ;;
+  """
+}
+
+check_args() {
+  if [ -z "$project" ] || \
+     [ -z "$environment" ] || \
+     [ -z "$role" ] || \
+     [ -z "$region" ] || \
+     [ -z "$token" ] || \
+     [ -z "$vault_password" ]; then
+    usage
+    die 'need args'
+  fi
+}
+
+while getopts ':p:e:o:r:t:v:' OPT; do
+  case $OPT in
+    p) project=$OPTARG ;;
+    e) environment=$OPTARG ;;
+    o) role=$OPTARG ;;
+    r) region=$OPTARG ;;
+    t) token=$OPTARG ;;
+    v) vault_password=$OPTARG ;;
+  esac
+done
+
+# only one instance of this script can run at a time
+# note: THIS BLOCKS forever while waiting on a lock!
+LOCKFILE=/var/lock/${project}-${environment}-ansible.lock
+[ "${FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock -xo ${LOCKFILE} "$0" "$@" || :
+
+ansible_role="${role/*ansible_role:/}"
+
+log "$project - this is a provisioner script.  this instance is in an ansible role of: $ansible_role"
+
+check_args
+
+# run as root
+if [[ "$EUID" -ne 0 ]]; then
+  die "Please run as root"
+fi
+
+# inventory
+cat > /tmp/local.inventory << EOF
+[$ansible_role]
+localhost
+
+[${project}:children]
+$ansible_role
+
+[${project}_${environment}:children]
+$ansible_role
+EOF
+
+STACKS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." >/dev/null && pwd )"
+cd $STACKS_DIR
+
+export DO_API_TOKEN="${token}"
+export ANSIBLE_VAULT_PASSWORD="${vault_password}"
+ansible-playbook playbook.yml \
+  --connection=local \
+  --inventory-file /tmp/local.inventory \
+  --extra-vars \
+    "project=$project \
+     env=$environment \
+     region=$region \
+     digitalocean_token=$token"
+
+playbook_status="$?"
+if [ $playbook_status -ne 0 ]
+then
+  fail_name="$(hostname -i).failed"
+  echo "Capturing failure $playbook_status to /tmp/$fail_name"
+  echo -e "playbook_status=${playbook_status}\ndate=$(date -Ins)" > /tmp/$fail_name
+  echo -e "----------------\nRecent system logs:" >> /tmp/$fail_name
+  tail -n 50 /var/log/syslog /var/log/messages >> /tmp/$fail_name
+  #echo "Reporting failure $playbook_status to s3 as $fail_name"
+  #aws s3 cp --content-type text/plain /tmp/$fail_name s3://${project}-${environment}-infrastructure/build/$fail_name
+fi
+
+rm /tmp/local.inventory

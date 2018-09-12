@@ -1,0 +1,19 @@
+---
+
+- name: remote facts
+  digitalocean_tagged_droplets:
+    tag: "{{ project }}:{{ env }}:ansible_role:consul_server"
+  register: consul_server_droplets
+  changed_when: false
+
+- name: add group hosts
+  add_host:
+    hostname: "{{ item }}"
+    groups: "{{ consul_ansible_host }}"
+  with_items: "{{ consul_server_droplets.ansible_facts.hosts }}"
+  changed_when: false
+
+- name: advise consul will not configure
+  debug:
+    msg: "Instance(s) tagged {{ consul_ansible_host }} in {{ consul_server_env }} not found"
+  when: groups[consul_ansible_host] is not defined

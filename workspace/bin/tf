@@ -1,16 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 [ ! -z "${TRACE:-}" ] && set -x
-
-usage() {
-  echo """
-  usage: $0 [-l <layer>] [-a <action>]
-    where
-      action is one of 'plan', 'apply', or 'destroy'
-      layer is 'core', etc
-  """
-}
 
 log() {
   echo "* [${2:-INFO}] $1"
@@ -21,24 +12,40 @@ die() {
   exit 1
 }
 
+usage() {
+  echo """
+  usage: $0 [-p <project>] [-e <environment>] [-l <layer>] [-a <action>]
+    where
+      project needs a name
+      environment is 'dev', 'prod', etc
+      layer is 'core', etc
+      action is one of 'plan', 'apply', or 'destroy'
+  """
+}
+
 check_args() {
-  if [ -z "$action" ] || [ -z "$layer" ]; then
+  if [ -z "$project" ] || \
+     [ -z "$environment" ] || \
+     [ -z "$layer" ] || \
+     [ -z "$action" ]; then
     usage
     die 'need args'
   fi
 }
 
 check_ansible_archive() {
+  ansible_archive_key="infrastructure/${project}/${environment}/ansible/ansible.tar.gz"
 	s3cmd \
 	  --access_key="${TF_VAR_aws_access_key_id}" \
 	  --secret_key="${TF_VAR_aws_secret_access_key}" \
 	  --host="${TF_VAR_region}.digitaloceanspaces.com" \
 	  --host-bucket="%(bucket)s.${TF_VAR_region}.digitaloceanspaces.com" \
-	  ls s3://${state_bucket}/ansible/ansible.tar.gz | grep -qs ansible \
-	|| die "No ansible archive in s3://${state_bucket}/ansible/ansible.tar.gz"
+	  ls s3://${state_bucket}/${ansible_archive_key} | grep -qs ansible \
+	|| die "No ansible archive in s3://${state_bucket}/${ansible_archive_key}"
 }
 
 init_terraform() {
+  state_key="infrastructure/${project}/${environment}/state/${layer}.tfstate"
   terraform init \
     -backend-config "bucket=${state_bucket}" \
     -backend-config "key=${state_key}" \
@@ -56,9 +63,10 @@ init_terraform() {
 
 run_terraform() {
   terraform $action \
-    -var "region=${region}" \
+    -var "project=${project}" \
+    -var "environment=${environment}" \
     -var "layer=${layer}" \
-    -var "environment=${env}" \
+    -var "region=${region}" \
     -var "state_bucket=${state_bucket}" \
     -var-file "${workspace_dir}/terraform.tfvars" \
     || die 'failed to run terraform'
@@ -80,22 +88,19 @@ graph_terraform() {
     || die 'failed to run terraform graph'
 }
 
-action=
-layer=
-while getopts ':a:l:' OPT; do
+while getopts ':p:e:l:a:' OPT; do
   case $OPT in
-    a) action=$OPTARG ;;
+    p) project=$OPTARG ;;
+    e) environment=$OPTARG ;;
     l) layer=$OPTARG ;;
+    a) action=$OPTARG ;;
   esac
 done
 
 check_args
 
 region="${TF_VAR_region:-ams3}"
-project=demo
-env=prod
 state_bucket="${TF_VAR_stack_state_bucket}" #"do-stacks-ams3"
-state_key="state/${env}/${layer}.tfstate"
 
 # change into the directory for the particular layer
 project_dir=$(git rev-parse --show-toplevel)

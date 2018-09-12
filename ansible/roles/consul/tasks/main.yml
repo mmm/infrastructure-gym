@@ -1,0 +1,17 @@
+---
+
+- name: install consul
+  include: install.yml
+  tags:
+    - install
+
+- name: set hostgroup
+  include: hostgroup.yml
+  tags:
+    - configure
+
+- name: configure when server hostgroup exists
+  include: configure.yml
+  when: groups[consul_ansible_host] is defined
+  tags:
+    - configure

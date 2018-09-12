@@ -1,0 +1,6 @@
+---
+
+consul_dc: "{{ region }}"
+consul_tld: "consul"
+consul_domain: "node.{{ consul_dc }}.{{ consul_tld }}"
+consul_service_domain: "service.{{ consul_dc }}.{{ consul_tld }}"

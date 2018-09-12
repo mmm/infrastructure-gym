@@ -1,0 +1,5 @@
+---
+
+dnsmasq:
+  rev_cidr: "{{ private_ipv4_address | regex_replace('^(\\d+).(\\d+).(\\d+).(\\d+)$', '\\2.\\1') }}"
+  additional_rev_cidr: []

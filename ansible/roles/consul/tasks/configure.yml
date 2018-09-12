@@ -1,0 +1,36 @@
+---
+
+- name: configure consul
+  template:
+    src: consul.json.j2
+    dest: /etc/consul.d/consul.json
+  notify: restart consul
+
+- name: add systemd service
+  template:
+    src: consul.service.j2
+    dest: /etc/systemd/system/consul.service
+  notify:
+    - reload systemd
+    - restart consul
+
+- name: clients wait for server
+  wait_for:
+    host: "{{ item }}"
+    port: 8301
+    timeout: 600
+  with_items: "{{ groups[consul_ansible_host] }}"
+  when:
+    - consul_is_server is not defined
+
+- name: enable and start
+  service:
+    name: consul
+    enabled: yes
+    state: started
+
+- name: sudoers file
+  template:
+    src: sudoers.j2
+    dest: "/etc/sudoers.d/94_consul"
+    mode: 0440
