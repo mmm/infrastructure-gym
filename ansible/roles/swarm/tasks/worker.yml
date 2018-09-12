@@ -1,0 +1,15 @@
+---
+
+- name: worker
+  copy:
+    dest: /tmp/some-swarm-worker
+    content: 'some stuff for the worker'
+
+- name: get swarm token from consul
+  set_fact:
+    swarm_token: "{{ item }}"
+  with_consul_kv:
+    - 'config/swarm/0/token'
+
+- name: join a swarm cluster
+  shell: "docker swarm join --token {{ swarm_token }} {{ swarm_manager }}:{{ swarm_manager_port }}"

@@ -1,0 +1,24 @@
+---
+
+- name: Add docker package key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+
+- name: Add docker source repo
+  copy:
+    dest: /etc/apt/sources.list.d/docker.list
+    content: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable'
+
+- name: update cache
+  apt:
+    update_cache: yes
+
+- name: install packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - docker-ce
+   - docker-compose
+  notify:
+    - reload systemd

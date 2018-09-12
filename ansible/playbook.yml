@@ -35,6 +35,14 @@
     #- { role: Datadog.datadog, when: monitoring_enabled, tags: datadog }
     #- { role: inspector, when: inspector_enabled, tags: inspector }
 
+- hosts: swarm_server
+  roles:
+    - { role: swarm, swarm_role: server }
+
+- hosts: swarm_worker
+  roles:
+    - { role: swarm, swarm_role: worker }
+
 #- hosts: kdc
   #roles:
     #- { role: kdc, tags: kdc }

@@ -1,0 +1,7 @@
+---
+
+swarm_role: ""
+swarm_token: ""
+swarm_manager: "swarm-manager.service.ams3.consul"
+swarm_manager_port: 2377
+swarm_manager_advertise_addr: eth1

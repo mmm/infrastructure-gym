@@ -88,6 +88,15 @@ graph_terraform() {
     || die 'failed to run terraform graph'
 }
 
+publish_ansible() {
+  # tar ansible up into a temp file
+  tempfile=$(mktemp ansible-XXXXXX.tar.gz)
+  tar czvf $tempfile 
+	tar czf ansible.tar.gz --exclude=tmp ../ansible
+  # push that tempfile up to infrastructure bucket
+
+}
+
 while getopts ':p:e:l:a:' OPT; do
   case $OPT in
     p) project=$OPTARG ;;
@@ -111,14 +120,17 @@ cd ${project_dir}/terraform/layers/${layer} \
 # clean up any cruft
 [ -d .terraform ] && rm -rf .terraform
 
-check_ansible_archive # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
 #create_state_bucket
 init_terraform
 case $action in
   graph)
     graph_terraform
     ;;
+  publish)
+    publish_ansible
+    ;;
   *)
+    check_ansible_archive # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
     run_terraform
     ;;
 esac
