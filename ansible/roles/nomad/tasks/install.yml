@@ -1,0 +1,23 @@
+---
+
+- name: download nomad
+  get_url:
+    url: https://releases.hashicorp.com/nomad/0.8.5/nomad_0.8.5_linux_amd64.zip
+    dest: /tmp/nomad.zip
+
+- name: extract nomad
+  unarchive:
+    src: /tmp/nomad.zip
+    dest: /usr/bin/
+    mode: 0755
+
+- name: create nomad config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0775
+  with_items:
+    - "{{ nomad_config_dir }}"
+    - "{{ nomad_data_dir }}"

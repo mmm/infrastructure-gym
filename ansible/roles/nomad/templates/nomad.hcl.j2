@@ -1,0 +1,13 @@
+datacenter="{{ region }}"
+data_dir = "{{ nomad_data_dir }}"
+bind_addr = "{{ private_ipv4_address }}"
+server {
+  enabled = "{{ is_nomad_server }}"
+  bootstrap_expect = "{% if is_nomad_server %}{{ nomad.bootstrap_expect }}{% else %}0{% endif %}"
+}
+client {
+  enabled = "{{ not is_nomad_server }}"
+  options = {
+    "driver.raw_exec.enable" = "1"
+  }
+}
