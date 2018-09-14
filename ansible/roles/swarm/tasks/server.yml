@@ -1,0 +1,30 @@
+---
+
+- name: server
+  copy:
+    dest: /tmp/some-swarm-server
+    content: 'some stuff for the server'
+
+- name: init a swarm cluster
+  shell: |
+    docker swarm init --advertise-addr {{ swarm_manager_advertise_addr }} | awk '/--token/ { print $5 }'
+  register: swarm_init_response
+
+- name: extract the swarm_token from the swarm_init_reponse
+  set_fact:
+    swarm_token: "{{ swarm_init_response.stdout }}"
+
+- name: tell us the token
+  debug:
+    msg: "got a swarm token of {{ swarm_token }}"
+
+
+- name: stick swarm token into consul
+  consul_kv:
+    key: "config/swarm/0/token"
+    value: "{{ swarm_token }}"
+
+- name: register swarm manager service with consul
+  consul:                                                                                                                                                                                                   
+    service_name: swarm-manager
+    service_port: 2377

@@ -1,0 +1,12 @@
+---
+
+- name: install consul
+  include: install.yml
+
+- name: server
+  include: server.yml
+  when: swarm_role == 'server'
+
+- name: worker
+  include: worker.yml
+  when: swarm_role == 'worker'

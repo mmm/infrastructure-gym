@@ -26,7 +26,7 @@ resource "digitalocean_droplet" "generic" {
   image = "ubuntu-16-04-x64"
   name = "${var.droplet_name}-${count.index}"
   region = "${var.region}"
-  size = "s-4vcpu-8gb"
+  size = "s-1vcpu-1gb"
   ssh_keys = ["${var.ssh_keys}"]
   tags = ["${var.tags}", "${var.droplet_subnet}"]
   volume_ids = ["${element(digitalocean_volume.home.*.id, count.index)}"]
@@ -37,7 +37,7 @@ resource "digitalocean_droplet" "generic" {
 resource "digitalocean_firewall" "firewall_inside_to_inside" {
   name = "${var.project}-${var.environment}-inside-to-inside"
 
-  droplet_ids = ["${digitalocean_droplet.generic.*.id}"]
+  tags = ["${var.droplet_subnet}"]
 
   inbound_rule = [
     {
@@ -79,7 +79,7 @@ resource "digitalocean_firewall" "firewall_inside_to_inside" {
 resource "digitalocean_firewall" "firewall_inside_to_outside" {
   name = "${var.project}-${var.environment}-inside-to-outside"
 
-  droplet_ids = ["${digitalocean_droplet.generic.*.id}"]
+  tags = ["${var.droplet_subnet}"]
 
   inbound_rule = []
 

@@ -84,7 +84,7 @@ module "consul_servers" {
 resource "digitalocean_firewall" "firewall_bastion_to_inside" {
   name = "${var.project}-${var.environment}-bastion-to-inside"
 
-  droplet_ids = ["${module.consul_servers.droplet_ids}"]
+  tags        = ["${data.terraform_remote_state.core.digitalocean_tag_inside_subnet}"]
 
   inbound_rule = [
     {
