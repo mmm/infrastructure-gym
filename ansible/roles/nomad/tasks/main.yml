@@ -1,0 +1,22 @@
+---
+
+- name: install docker
+  include: install-docker.yml
+  tags:
+    - install
+
+- name: install nomad
+  include: install.yml
+  tags:
+    - install
+
+- name: set nomad server hostgroup
+  include: hostgroup.yml
+  tags:
+    - configure
+
+- name: configure when nomad server hostgroup exists
+  include: configure.yml
+  when: groups[nomad_ansible_host] is defined
+  tags:
+    - configure

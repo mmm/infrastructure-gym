@@ -43,6 +43,14 @@
   roles:
     - { role: swarm, swarm_role: worker }
 
+- hosts: nomad_server
+  roles:
+    - { role: nomad, nomad_role: server }
+
+- hosts: nomad_client
+  roles:
+    - { role: nomad, nomad_role: client }
+
 #- hosts: kdc
   #roles:
     #- { role: kdc, tags: kdc }

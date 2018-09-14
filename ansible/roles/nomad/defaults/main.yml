@@ -1,0 +1,18 @@
+---
+
+nomad_ansible_host: nomad_server
+#nomad_version: 
+#nomad_version_hash:
+#nomad_server_env: "{{ env }}"
+
+is_nomad_server: false
+nomad_config_dir: /etc/nomad.d
+nomad_data_dir: /var/lib/nomad
+private_ipv4_address: "{{ ansible_eth1['ipv4']['address'] }}"
+
+nomad:
+  bootstrap_expect: "{% if groups[nomad_ansible_host] is defined %}{{ groups[nomad_ansible_host] | length - 1 }}{% endif %}"
+  #nomad_bin: { src: "nomad_{{ nomad_version }}_linux_amd64.zip", sha256sum: "{{ nomad_version_hash }}" }
+  #download_dir: /tmp
+  #download_url: https://releases.hashicorp.com/nomad
+  #install_dir: /usr/local/bin

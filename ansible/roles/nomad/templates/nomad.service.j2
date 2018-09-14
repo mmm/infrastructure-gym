@@ -1,0 +1,10 @@
+[Unit]
+Description=Nomad Agent
+After=consul.service
+
+[Service]
+Environment=GOMAXPROCS=`nproc`
+ExecStart=/usr/bin/nomad agent -config={{ nomad_config_dir }}
+
+[Install]
+WantedBy=default.target

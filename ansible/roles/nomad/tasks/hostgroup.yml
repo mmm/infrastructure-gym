@@ -1,0 +1,19 @@
+---
+
+- name: remote facts
+  digitalocean_tagged_droplets:
+    tag: "{{ project }}:{{ env }}:ansible_role:nomad_server"
+  register: nomad_server_droplets
+  changed_when: false
+
+- name: add group hosts
+  add_host:
+    hostname: "{{ item }}"
+    groups: "{{ nomad_ansible_host }}"
+  with_items: "{{ nomad_server_droplets.ansible_facts.hosts }}"
+  changed_when: false
+
+- name: advise nomad will not configure
+  debug:
+    msg: "Instance(s) tagged {{ nomad_ansible_host }} in {{ nomad_server_env }} not found"
+  when: groups[nomad_ansible_host] is not defined
