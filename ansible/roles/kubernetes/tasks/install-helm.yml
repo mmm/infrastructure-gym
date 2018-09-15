@@ -1,0 +1,25 @@
+---
+
+- name: download helm
+  get_url:
+    url: "{{ helm_download_url }}"
+    checksum: "{{ helm_download_checksum }}"
+    dest: "/tmp/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+
+- name: create a helm directory
+  file:
+    path: "/usr/local/helm-{{ helm_version }}"
+    state: directory
+    mode: 0755
+
+- name: extract helm
+  unarchive:
+    src: "/tmp/helm-v{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "/usr/local/helm-{{ helm_version }}"
+    mode: 0755
+
+- name: create links for helm
+  file:
+    src: "/usr/local/helm-{{ helm_version }}/linux-amd64/helm"
+    dest: /usr/local/bin/helm
+    state: link

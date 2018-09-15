@@ -23,20 +23,20 @@ data "terraform_remote_state" "core" {
   }
 }
 
-resource "digitalocean_tag" "role_kubernetes_minion" {
-  name = "${var.project}:${var.environment}:ansible_role:kubernetes_minion"
+resource "digitalocean_tag" "role_postgresql" {
+  name = "${var.project}:${var.environment}:ansible_role:postgresql"
 }
 
-module "kubernetes_minions" {
+module "postgresql" {
   source = "../../modules/worker_droplet"
-  droplet_name = "${var.project}-${var.environment}-kubernetes-minion"
-  count = 5 
+  droplet_name = "${var.project}-${var.environment}-postgresql"
+  count = 1 
   project = "${var.project}"
   environment = "${var.environment}"
   region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
-    "${digitalocean_tag.role_kubernetes_minion.id}",
+    "${digitalocean_tag.role_postgresql.id}",
   ]
   droplet_subnet = "${data.terraform_remote_state.core.digitalocean_tag_inside_subnet}"
   ansible_tarball = {
@@ -48,6 +48,35 @@ module "kubernetes_minions" {
     secret_key = "${var.aws_secret_access_key}"
     digitalocean_token = "${var.digitalocean_token}"
     vault_password = "${var.ansible_vault_password}"
-    role = "${digitalocean_tag.role_kubernetes_minion.name}"
+    role = "${digitalocean_tag.role_postgresql.name}"
+  }
+}
+
+resource "digitalocean_tag" "role_mysql" {
+  name = "${var.project}:${var.environment}:ansible_role:mysql"
+}
+
+module "mysql" {
+  source = "../../modules/worker_droplet"
+  droplet_name = "${var.project}-${var.environment}-mysql"
+  count = 1 
+  project = "${var.project}"
+  environment = "${var.environment}"
+  region = "${var.region}"
+  ssh_keys = ["${var.ssh_keys}"]
+  tags = [
+    "${digitalocean_tag.role_mysql.id}",
+  ]
+  droplet_subnet = "${data.terraform_remote_state.core.digitalocean_tag_inside_subnet}"
+  ansible_tarball = {
+    project = "${var.project}"
+    environment = "${var.environment}"
+    region = "${var.region}"
+    bucket = "${var.state_bucket}"
+    access_key = "${var.aws_access_key_id}"
+    secret_key = "${var.aws_secret_access_key}"
+    digitalocean_token = "${var.digitalocean_token}"
+    vault_password = "${var.ansible_vault_password}"
+    role = "${digitalocean_tag.role_mysql.name}"
   }
 }

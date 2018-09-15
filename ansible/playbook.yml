@@ -59,6 +59,14 @@
   roles:
     - { role: kubernetes, kubernetes_role: minion }
 
+- hosts: mysql
+  roles:
+    - { role: mysql }
+
+- hosts: postgresql
+  roles:
+    - { role: postgresql }
+
 #- hosts: kdc
   #roles:
     #- { role: kdc, tags: kdc }

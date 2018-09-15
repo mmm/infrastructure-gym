@@ -4,6 +4,7 @@ terraform {
 
 provider "digitalocean" {
   token = "${var.digitalocean_token}"
+  #version = "1.0.0"
 }
 
 data "terraform_remote_state" "core" {

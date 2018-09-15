@@ -57,7 +57,12 @@
 - name: install Pod network
   shell: "kubectl --kubeconfig /root/.kube/config apply -f {{ item }}"
   with_items:
-    - https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/canal/rbac.yaml
-    - https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/canal/canal.yaml
+    - "https://docs.projectcalico.org/v{{ calico_version }}/getting-started/kubernetes/installation/hosted/canal/rbac.yaml"
+    - "https://docs.projectcalico.org/v{{ calico_version }}/getting-started/kubernetes/installation/hosted/canal/canal.yaml"
   notify:
     - reload systemd
+
+- name: install helm
+  include: install-helm.yml
+  tags:
+    - install
