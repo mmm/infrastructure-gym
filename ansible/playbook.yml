@@ -51,6 +51,14 @@
   roles:
     - { role: nomad, nomad_role: client }
 
+- hosts: kubernetes_master
+  roles:
+    - { role: kubernetes, kubernetes_role: master }
+
+- hosts: kubernetes_minion
+  roles:
+    - { role: kubernetes, kubernetes_role: minion }
+
 #- hosts: kdc
   #roles:
     #- { role: kdc, tags: kdc }

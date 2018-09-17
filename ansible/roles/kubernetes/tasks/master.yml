@@ -1,0 +1,63 @@
+---
+
+- name: master
+  copy:
+    dest: /tmp/some-k8s-master
+    content: 'some stuff for the master'
+
+- name: pull kubeadm images
+  shell: |
+    kubeadm config images pull
+
+- name: init a k8s cluster
+  shell: |
+    kubeadm init --apiserver-advertise-address {{ private_ipv4_address }} --pod-network-cidr=10.244.0.0/16 --skip-token-print
+  register: kubeadm_init_response
+
+- name: tell us if that worked
+  debug:
+    var: kubeadm_init_response
+
+- name: register kuberenetes master services with consul
+  consul:                                                                                                                                                                                                   
+    service_name: kubernetes-master
+    service_port: 6443
+
+- name: create a join token
+  shell: |
+    kubeadm token create --ttl 0 --print-join-command
+  register: kubeadm_token_create_response
+
+- name: extract the join command
+  set_fact:
+    kubeadm_join_command: "{{ kubeadm_token_create_response.stdout_lines[0] }}"
+
+- name: tell us the join command
+  debug:
+    msg: "got a kubeadm join command of {{ kubeadm_join_command }}"
+
+- name: stick the kubeadm join command into consul
+  consul_kv:
+    key: "config/kubernetes/0/join_command"
+    value: "{{ kubeadm_join_command }}"
+
+- name: create a .kube directory
+  file:
+    path: /root/.kube
+    state: directory
+    mode: 0755
+
+- name: copy admin.conf to user .kube config
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    remote_src: yes
+    owner: root
+
+- name: install Pod network
+  shell: "kubectl --kubeconfig /root/.kube/config apply -f {{ item }}"
+  with_items:
+    - https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/canal/rbac.yaml
+    - https://docs.projectcalico.org/v3.1/getting-started/kubernetes/installation/hosted/canal/canal.yaml
+  notify:
+    - reload systemd

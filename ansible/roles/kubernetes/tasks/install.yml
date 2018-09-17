@@ -1,0 +1,24 @@
+---
+
+- name: Add kuberenetes package key
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+
+- name: Add kubernetes source repo
+  copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    content: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+
+- name: update cache
+  apt:
+    update_cache: yes
+
+- name: install packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - kubelet
+   - kubeadm
+   - kubectl
+   - kubernetes-cni

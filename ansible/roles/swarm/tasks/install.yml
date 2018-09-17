@@ -7,7 +7,7 @@
 - name: Add docker source repo
   copy:
     dest: /etc/apt/sources.list.d/docker.list
-    content: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable'
+    content: 'deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable'
 
 - name: update cache
   apt:

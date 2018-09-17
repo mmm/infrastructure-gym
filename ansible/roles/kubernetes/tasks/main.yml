@@ -1,0 +1,19 @@
+---
+
+- name: install docker
+  include: install-docker.yml
+  tags:
+    - install
+
+- name: install kuberenetes
+  include: install.yml
+  tags:
+    - install
+
+- name: master
+  include: master.yml
+  when: kubernetes_role == 'master'
+
+- name: minion
+  include: minion.yml
+  when: kubernetes_role == 'minion'
