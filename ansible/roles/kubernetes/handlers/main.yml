@@ -1,0 +1,10 @@
+---
+
+- name: start kubelet
+  command: systemctl start kubelet
+
+- name: stop kubelet
+  command: systemctl stop kubelet
+
+- name: reload systemd
+  command: systemctl daemon-reload

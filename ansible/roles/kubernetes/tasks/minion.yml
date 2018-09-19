@@ -1,0 +1,16 @@
+---
+
+- name: minion
+  copy:
+    dest: /tmp/some-kubernetes-minion
+    content: 'some stuff for a minion'
+
+- name: get kubeadm token from consul
+  set_fact:
+    kubeadm_join_command: "{{ item }}"
+  with_consul_kv:
+    - 'config/kubernetes/0/join_command'
+
+- name: join a kubernetes cluster
+  shell: "{{ kubeadm_join_command }}"
+  register: kubeadm_join_command_response

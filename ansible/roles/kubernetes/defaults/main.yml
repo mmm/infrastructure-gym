@@ -1,0 +1,8 @@
+---
+
+kubernetes_role: ""
+kubernetes_token: ""
+kubernetes_master: "kubernetes-master.service.ams3.consul"
+kubernetes_master_port: 6443
+kubernetes_master_advertise_addr: eth1
+private_ipv4_address: "{{ ansible_eth1['ipv4']['address'] }}"
