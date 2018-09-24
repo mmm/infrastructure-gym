@@ -59,7 +59,7 @@ resource "digitalocean_tag" "role_consul" {
 module "consul_servers" {
   source = "../../modules/droplet"
   droplet_name = "${var.project}-${var.environment}-consul"
-  count = 3 
+  count = 1
   project = "${var.project}"
   environment = "${var.environment}"
   region = "${var.region}"
