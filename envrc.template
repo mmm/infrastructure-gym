@@ -11,5 +11,7 @@ export TF_VAR_region="ams3"
 export TF_VAR_ansible_vault_password="some-vault-secret"
 
 # TODO remove these
-export TF_project="myproject"
-export TF_environment="myenvironment"
+export TF_VAR_project="myproject"
+export TF_VAR_environment="myenvironment"
+
+export PATH=$PATH:./bin

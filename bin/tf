@@ -1,0 +1,176 @@
+#!/bin/bash
+
+set -eo pipefail
+[ ! -z "${TRACE:-}" ] && set -x
+
+log() {
+  echo "* [${2:-INFO}] $1"
+}
+
+die() {
+  log >&2 "$1" "ERROR"
+  exit 1
+}
+
+usage() {
+  echo """
+  usage: $0 [-p <project>] [-e <environment>] [-u] <layer> <action>
+    where
+      -p project name (defaults to TF_VAR_project env var)
+      -e environment name (defaults to TF_VAR_environment env var)
+      -u update ansible archive
+      layer is 'core', etc
+      action is one of 'plan', 'apply', or 'destroy'
+  """
+}
+
+check_args() {
+  if [ -z "$project" ] || \
+     [ -z "$environment" ] || \
+     [ -z "$layer" ] || \
+     [ -z "$action" ]; then
+    usage
+    die 'need args'
+  fi
+}
+
+spaces_cmd() {
+  local cmd=$*
+	s3cmd \
+	  --access_key="${TF_VAR_aws_access_key_id}" \
+	  --secret_key="${TF_VAR_aws_secret_access_key}" \
+	  --host="${TF_VAR_region}.digitaloceanspaces.com" \
+	  --host-bucket="%(bucket)s.${TF_VAR_region}.digitaloceanspaces.com" \
+    ${cmd}
+}
+
+check_ansible_archive() {
+  local key=$1
+	spaces_cmd ls s3://${state_bucket}/${key} | grep -qs ansible
+}
+
+remove_ansible_archive() {
+  local key=$1
+  spaces_cmd rm s3://${state_bucket}/${key} \
+    || die "unable to remove ansible archive s3://${state_bucket}/${key}"
+}
+
+publish_ansible_archive() {
+  local tarball_path=$1
+  local key=$2
+  spaces_cmd put $tempfile s3://${state_bucket}/${key} \
+    || die "Unable to publish ansible archive to s3://${state_bucket}/${key}"
+}
+
+create_ansible_archive() {
+  local tarball_path=$1
+  tar czf $tarball_path --exclude=tmp ${project_dir}/ansible
+}
+
+archive_ansible() {
+  local key="infrastructure/${project}/${environment}/ansible/ansible.tar.gz"
+
+  if [ -n "$update_archive" ]; then
+    remove_ansible_archive $key
+  fi
+
+  if ! check_ansible_archive $key; then
+    local tempfile=$(mktemp ansible-XXXXXX.tar.gz)
+    create_ansible_archive $tempfile
+    publish_ansible_archive $tempfile $key
+    rm -f $tempfile
+  fi
+}
+
+init_terraform() {
+  state_key="infrastructure/${project}/${environment}/state/${layer}.tfstate"
+  terraform init \
+    -backend-config "bucket=${state_bucket}" \
+    -backend-config "key=${state_key}" \
+    -backend-config "region=us-west-2" \
+    -backend-config "endpoint=https://${TF_VAR_region}.digitaloceanspaces.com" \
+    -backend-config "access_key=${TF_VAR_aws_access_key_id}" \
+    -backend-config "secret_key=${TF_VAR_aws_secret_access_key}" \
+    -backend-config "skip_credentials_validation=true" \
+    -backend-config "skip_get_ec2_platforms=true" \
+    -backend-config "skip_requesting_account_id=true" \
+    -backend-config "skip_metadata_api_check=true" \
+    -force-copy \
+    || die 'failed to init terraform'
+}
+
+run_terraform() {
+  terraform $action \
+    -var "project=${project}" \
+    -var "environment=${environment}" \
+    -var "layer=${layer}" \
+    -var "region=${region}" \
+    -var "state_bucket=${state_bucket}" \
+    -var-file "${project_dir}/terraform.tfvars" \
+    || die 'failed to run terraform'
+}
+
+graph_terraform() {
+  #Options:
+
+    #-draw-cycles   Highlight any cycles in the graph with colored edges.
+                   #This helps when diagnosing cycle errors.
+
+    #-no-color      If specified, output won't contain any color.
+
+    #-type=plan     Type of graph to output. Can be: plan, plan-destroy, apply,
+                   #validate, input, refresh.
+
+  terraform $action \
+    -type=plan-destroy \
+    || die 'failed to run terraform graph'
+}
+
+main() {
+
+  while getopts ':p:e:l:a:u' OPT; do
+    case $OPT in
+      p) project_opt=$OPTARG ;;
+      e) environment_opt=$OPTARG ;;
+      u) update_archive="true" ;;
+    esac
+  done
+  project=${project_opt:-$TF_VAR_project} # opt overrides env default
+  environment=${environment_opt:-$TF_VAR_environment} # opt overrides env default
+
+  shift $(($OPTIND - 1))
+  layer=$1
+  action=$2
+
+  check_args
+
+  region="${TF_VAR_region:-ams3}"
+  state_bucket="${TF_VAR_stack_state_bucket}" #"do-stacks-ams3"
+
+  # change into the directory for the particular layer
+  project_dir=$(git rev-parse --show-toplevel)
+  cd ${project_dir}/terraform/layers/${layer} \
+    || die "failed to find layer $layer"
+
+  # clean up any cruft
+  [ -d .terraform ] && rm -rf .terraform
+
+  #create_state_bucket
+  init_terraform
+  case $action in
+    graph)
+      graph_terraform
+      ;;
+    *)
+      archive_ansible # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
+      run_terraform
+      ;;
+  esac
+
+  #if [ "${action}" == "destroy" ]; then
+    #remove_state
+  #fi
+
+}
+
+main "$@"

@@ -23,22 +23,17 @@ ignore this new file.
 
 # Create some test droplets
 
-## create a tarball for ansible
-
-    make
-    make publish
-
 ## init and run terraform
 
 ### setup `core`
 
-    bin/tf -l core -a plan
-    bin/tf -l core -a apply
+    tf core plan
+    tf core apply
 
 ### build the `support` layer
 
-    bin/tf -l support -a plan
-    bin/tf -l support -a apply
+    tf support plan
+    tf support apply
 
 ## check out your droplets
 
@@ -49,6 +44,6 @@ command for the `support` layer above.
 
 Reverse out your layers
 
-    bin/tf -l support -a destroy
-    bin/tf -l core -a destroy
+    tf support destroy
+    tf core destroy
 
