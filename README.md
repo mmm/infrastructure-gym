@@ -61,7 +61,6 @@ specifically, a `layer` tool
 
 or something more ideomatic than
 
-    tf -l <layer> -a <action>
+    tf [-p <project>] [-e <environment>] [-u] <layer> <action>
 
 and treat it more like a terraform plugin.
-
