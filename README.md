@@ -1,13 +1,17 @@
 
+(Disclaimers: Not an officially supported DigitalOcean project, don't fly
+planes with this, still WIP, etc.)
+
+
 # Infrastructure Gym
 
 Train RL models to understand and control cloud infrastructure.
 
-Similar to openai.org/gym but used to train RL models to use cloud APIs to
-manage infrastructure intelligently. Here, we represent an environment in terms
-of (Terraform) infrastructure graphs.  We include various ways to generate load
-and then measure response via prometheus queries.  Reward is cloud
-infrastructure cost.
+Created in the spirit of openai.org/gym but we want to train RL models to use
+cloud APIs to manage infrastructure intelligently. Here, we represent an
+environment in terms of (Terraform) infrastructure graphs.  We include various
+ways to generate load and then measure response via prometheus queries.  Reward
+is minimizing cloud infrastructure cost.
 
 
 # Stacks of Services
@@ -48,30 +52,14 @@ with independent state storage/locking.
 - etc...
 
 
-# TODO
-
-This is all still WIP.
-
-Development's roughly following:
-
-- Terraform layers common to any applications
-- Ansible roles common to any applications
-- specialized Terraform layers needed for examples
-- specialized Ansible roles needed for examples
-
-
 ## Tools
 
-Need to simplify the `tf` utility.
+There's a `tf` utility... think of it as a missing `layer` subcommand
 
-Maybe break it up into what looks like subcommands?
-
-specifically, a `layer` tool
-
+    # doesn't run, just for the idea
     terraform layer <layer> <action>
 
-or something more ideomatic than
+or plugin.  In reality, use it like this
 
     tf [-p <project>] [-e <environment>] [-u] <layer> <action>
 
-and treat it more like a terraform plugin.
