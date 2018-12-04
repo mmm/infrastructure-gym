@@ -6,3 +6,9 @@ kubernetes_master: "kubernetes-master.service.ams3.consul"
 kubernetes_master_port: 6443
 kubernetes_master_advertise_addr: eth1
 private_ipv4_address: "{{ ansible_eth1['ipv4']['address'] }}"
+
+calico_version: 3.2
+
+helm_version: 2.11.0
+helm_download_url: https://storage.googleapis.com/kubernetes-helm/helm-v2.11.0-linux-amd64.tar.gz
+helm_download_checksum: sha256:02a4751586d6a80f6848b58e7f6bd6c973ffffadc52b4c06652db7def02773a1

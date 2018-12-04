@@ -1,0 +1,23 @@
+---
+
+- name: install packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - software-properties-common
+   - python3-software-properties
+
+# debconf stuff for admin pass
+# export DEBIAN_FRONTEND="noninteractive"
+#
+# sudo debconf-set-selections <<< "mysql-server mysql-server/root_password password $1"
+# sudo debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $1"
+
+- name: install packages
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+   - mysql-server
+   - mysql-client

@@ -58,13 +58,14 @@ remove_ansible_archive() {
 publish_ansible_archive() {
   local tarball_path=$1
   local key=$2
-  spaces_cmd put $tempfile s3://${state_bucket}/${key} \
+  spaces_cmd put $tarball_path s3://${state_bucket}/${key} \
     || die "Unable to publish ansible archive to s3://${state_bucket}/${key}"
 }
 
 create_ansible_archive() {
   local tarball_path=$1
-  tar czf $tarball_path --exclude=tmp ${project_dir}/ansible
+  cd ${project_dir}
+  tar czf $tarball_path --exclude=tmp ansible
 }
 
 archive_ansible() {
@@ -75,7 +76,7 @@ archive_ansible() {
   fi
 
   if ! check_ansible_archive $key; then
-    local tempfile=$(mktemp ansible-XXXXXX.tar.gz)
+    local tempfile=$(mktemp -p"/tmp" ansible-XXXXXX.tar.gz)
     create_ansible_archive $tempfile
     publish_ansible_archive $tempfile $key
     rm -f $tempfile
@@ -149,6 +150,9 @@ main() {
 
   # change into the directory for the particular layer
   project_dir=$(git rev-parse --show-toplevel)
+
+  archive_ansible # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
+
   cd ${project_dir}/terraform/layers/${layer} \
     || die "failed to find layer $layer"
 
@@ -157,12 +161,12 @@ main() {
 
   #create_state_bucket
   init_terraform
+
   case $action in
     graph)
       graph_terraform
       ;;
     *)
-      archive_ansible # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
       run_terraform
       ;;
   esac
