@@ -10,3 +10,5 @@ backend.tf
 terraform/userdata/default.sh
 
 *.tar.gz
+
+.ropeproject
