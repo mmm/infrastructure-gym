@@ -1,4 +1,15 @@
 
+# Infrastructure Gym
+
+Train RL models to understand and control cloud infrastructure.
+
+Similar to openai.org/gym but used to train RL models to use cloud APIs to
+manage infrastructure intelligently. Here, we represent an environment in terms
+of (Terraform) infrastructure graphs.  We include various ways to generate load
+and then measure response via prometheus queries.  Reward is cloud
+infrastructure cost.
+
+
 # Stacks of Services
 
 This is a user framework for assembling (and automating) DO resources into
