@@ -21,7 +21,9 @@ DOCUMENTATION = '''
 module: digitalocean_tag_facts
 short_description: Get IP addresses of all droplets matching tag.
 description:
-  - Get IP addresses of all droplets matching tag.
+  - Get IP addresses of all droplets matching tag.  This is nothing but simple
+    edits of the Ansible Project DigitalOcean inventory and Abhijeet Kasurde's
+    tag facts.
 version_added: '1.0'
 author: "Mark Mims (@m_3)"
 options:

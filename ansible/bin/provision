@@ -98,8 +98,6 @@ then
   echo -e "playbook_status=${playbook_status}\ndate=$(date -Ins)" > /tmp/$fail_name
   echo -e "----------------\nRecent system logs:" >> /tmp/$fail_name
   tail -n 50 /var/log/syslog /var/log/messages >> /tmp/$fail_name
-  #echo "Reporting failure $playbook_status to s3 as $fail_name"
-  #aws s3 cp --content-type text/plain /tmp/$fail_name s3://${project}-${environment}-infrastructure/build/$fail_name
 fi
 
 rm /tmp/local.inventory

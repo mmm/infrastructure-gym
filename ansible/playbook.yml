@@ -11,14 +11,6 @@
         create: yes
       changed_when: false
       tags: environment_status_reporting
-    #- name: record ansible start
-      #s3:
-        #bucket: "{{ project }}-{{ env }}-infrastructure"
-        #mode: put
-        #src: "/tmp/ansible.timestamp"
-        #object: "build/{{ ansible_default_ipv4.address }}.started"
-      #changed_when: false
-      #tags: environment_status_reporting
     - name: Update apt-cache
       apt:
         update_cache: yes
@@ -29,11 +21,6 @@
   roles:
     - { role: common, tags: common }
     - { role: consul, tags: consul }
-    #- { role: directory_services, when: directory_services_enabled, tags: directory_services }
-    #- { role: cfssl, tags: cfssl }
-    #- { role: java, tags: java }
-    #- { role: Datadog.datadog, when: monitoring_enabled, tags: datadog }
-    #- { role: inspector, when: inspector_enabled, tags: inspector }
 
 - hosts: swarm_server
   roles:
@@ -67,23 +54,6 @@
   roles:
     - { role: postgresql }
 
-#- hosts: kdc
-  #roles:
-    #- { role: kdc, tags: kdc }
-
-#- hosts: logstash
-  #roles:
-    #- { role: logstash, tags: logstash }
-
-#- hosts: kibana
-  #roles:
-    #- { role: kibana, tags: kibana }
-    #- { role: elastalert, tags: elastalert }
-
-#- hosts: vault
-  #roles:
-    #- { role: vault, tags: vault }
-
 - hosts: localhost
   tasks:
     - name: create timestamp file
@@ -93,11 +63,3 @@
         create: yes
       changed_when: false
       tags: environment_status_reporting
-    #- name: record ansible completion
-      #s3:
-        #bucket: "{{ project }}-{{ env }}-infrastructure"
-        #mode: put
-        #src: "/tmp/ansible.timestamp"
-        #object: "build/{{ ansible_default_ipv4.address }}.completed"
-      #changed_when: false
-      #tags: environment_status_reporting
