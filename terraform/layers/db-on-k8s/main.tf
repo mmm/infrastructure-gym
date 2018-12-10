@@ -2,7 +2,11 @@ terraform {
   backend "s3" {}
 }
 
-provider "kubernetes" {}
+provider "helm" {
+  "kubernetes" {
+    config_path = "${var.kubeconfig}"
+  }
+}
 
 #resource "kubernetes_persistent_volume_claim" "example" {
 	#metadata {
@@ -53,7 +57,7 @@ data "null_data_source" "dbpw" {
 }
 
 resource "helm_release" "db" {
-    name      = "myapp"
+    name      = "${var.project}-${var.environment}"
     chart     = "stable/postgresql"
     version   = "2.7.6"
 
