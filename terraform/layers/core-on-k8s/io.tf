@@ -17,13 +17,3 @@ variable "digitalocean_token" {}
 variable "ssh_keys" {
   default = []
 }
-
-variable "db_env" {
-  default = []
-}
-output "db_service_address" {
-  value = "${helm_release.db.name}-postgresql.default.svc.cluster.local"
-}
-output "dbpw" {
-  value = "${data.null_data_source.dbpw.outputs.value}"
-}
