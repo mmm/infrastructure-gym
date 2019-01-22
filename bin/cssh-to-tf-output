@@ -1,0 +1,31 @@
+#!/bin/bash
+
+usage() {
+  echo "Usage: $0 <terraform_output_name>"
+}
+[ $# -ne 1 ] && usage && exit 1
+terraform_output_name=$1
+
+ssh_targets_for() {
+  local tf_output=$1
+  terraform output -json $tf_output | jq -r '.value|.[]' | sed 's/^/root@/'
+}
+
+create_ssh_pane() {
+  local session=$1
+  local host=$2
+
+  tmux has-session -t $session 2>/dev/null \
+    && tmux split-window -t $session "exec ssh $host" \
+    || tmux new-session -d -s $session "exec ssh $host"
+
+  tmux select-layout -t $session tiled >/dev/null
+}
+
+export session="cssh-$$"
+for host in "$(ssh_targets_for $terraform_output_name)"; do
+  create_ssh_pane $session $host
+done
+#tmux set-window-option -t $session status off >/dev/null
+tmux set-window-option -t $session synchronize-panes on >/dev/null
+exec tmux attach -t $session
