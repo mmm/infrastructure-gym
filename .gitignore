@@ -12,3 +12,4 @@ terraform/userdata/default.sh
 *.tar.gz
 
 .ropeproject
+discourse

@@ -57,7 +57,8 @@ data "null_data_source" "dbpw" {
 }
 
 resource "helm_release" "db" {
-    name      = "${var.project}-${var.environment}"
+    name      = "database"
+    namespace = "${var.project}-${var.environment}"
     chart     = "stable/postgresql"
     version   = "2.7.6"
 
