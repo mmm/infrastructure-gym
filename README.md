@@ -10,7 +10,7 @@ Train RL models to understand and control cloud infrastructure.
 Created in the spirit of openai.org/gym but we want to train RL models to use
 cloud APIs to manage infrastructure intelligently.
 
-[An Infrastructure Gym](media/RL4infra.svg)
+[An Infrastructure Gym](docts/media/RL4infra.svg)
 
 Here, we represent an environment in terms of (Terraform) infrastructure
 graphs.  We include various ways to generate load and then measure response via
