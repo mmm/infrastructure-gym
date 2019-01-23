@@ -10,66 +10,65 @@ Train RL models to understand and control cloud infrastructure.
 Created in the spirit of openai.org/gym but we want to train RL models to use
 cloud APIs to manage infrastructure intelligently.
 
-<h4 align="center"><img src="docs/media/RL4infra.svg" alt="An Infrastructure Gym" height="400"></h4>
-
 Here, we represent an environment in terms of (Terraform) infrastructure
 graphs.  We include various ways to generate load and then measure response via
 prometheus queries.  Reward is minimizing cloud infrastructure cost.
 
 
-# Stacks of Services
+There's more info in [docs](docs/)
 
-This is a user framework for assembling (and automating) DO resources into
-cloud-based applications that follow enterprise-class requirements and
-best-practices for availability, redundancy, security, manageability, etc.
+---
 
-The primary purpose of this atm is to provide a set of building blocks to
-create realistic user infrastructure graphs of varying complexity against the
-DO API.
+# Current Project Status
 
-These graphs are then analyzed (used to train ML algs) in hopes of better
-understanding the behavior of infrastructure topology and configuration under
-various loads and constraints.
+This is all under active development.  Trying to open-first as much as
+possible, but please be patient.  I'll update status here as things become
+stable enough to train external models.
 
-This framework also serves as a sort of control plane by which user
-infrastructure graphs can be automatically manipulated to better handle those
-loads and constraints.
+## Agents
 
-Examples are provided here to automate the buildout of
-- web-servers / web-services at scale
-- docker swarm
-- k8s
-- ...?
+[Examples](examples/) are still WIP and mostly internal for now.
 
 
-# Layers
+## Environment
 
-It's best-practice to separate Terraform templates into separate layers
-organized by provider.  Each layer has independent state storage/locking.
+### API
 
-- do/core (account, state buckets, infrastructure buckets, tags, network config,
-  project config, etc)
-- do/support (jump boxes, dns/service discovery, auth, key mgmt, cert mgmt, etc)
-- do/app (servers / workers)
-- do/edge (lb, firewalls, network config)
-- etc...
+A gym-like API for training agents is still WIP.
 
-and
+### Providers
 
-- k8s/core (namespace)
-- k8s/prometheus (monitoring)
-- k8s/heater
-- k8s/siege
-- ...
+The current environment works against the following providers
 
-## Tools
+- do
+- k8s and helm
 
-There's a `tf` utility... think of it as a missing `layer` subcommand
+other providers can be added as needed.
 
-    # doesn't run, just for the idea
-    terraform layer <provider>/<layer> <action>
+### Layers
 
-or plugin.  In reality, use it like this
+Infrastructure components are organized into [terraform layers](docs/terraform_layers.md):
 
-    tf [-p <project>] [-e <environment>] [-u] <provider>/<layer> <action>
+#### For the `k8s` provider
+
+- `heater` (simple web-app cluster used to generate load)
+- `siege-engine` (simple web-client cluster used to generate load)
+- `prometheus` (uses the helm provider to install prometheus-operator)
+- `postgresql` (uses the helm provider)
+- `core` (namespaces, helm/tiller, etc)
+
+#### For the `do` provider
+
+- `k8s-control-plane` and k8s-minions (roll your own k8s cluster)
+- `nomad` (roll your own nomad cluster)
+- `swarm-manager` and swarm-worker (roll your own docker swarm cluster)
+- `support` (bastions, consul cluster, etc)
+- `core` do setup bits (tags, subnetting/firewalls, etc)
+
+### Backends
+
+- do spaces
+- s3
+
+other state backends can be added as needed.
 
