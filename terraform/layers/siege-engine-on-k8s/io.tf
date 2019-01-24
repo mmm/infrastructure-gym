@@ -18,25 +18,21 @@ variable "ssh_keys" {
   default = []
 }
 
-variable "heater_image" {
-  default = "markmims/heater:latest"
+variable "siegeengine_image" {
+  default = "markmims/siege-engine:latest"
 }
-variable "heater_name" {
+variable "siegeengine_name" {
   default = "simple"
 }
-variable "heater_replicas" {
-  default = 4
+variable "siegeengine_target" {
+  default = ""
 }
-variable "heater_threads_per_replica" {
+variable "siegeengine_replicas" {
   default = 1
 }
-variable "heater_timeout" {
-  default = 10
+variable "siegeengine_threads_per_replica" {
+  default = 1
 }
-variable "heater_port" {
-  default = 80
-}
-
-output "lb_ip" {
-  value = "${kubernetes_service.heater.load_balancer_ingress.0.ip}"
+variable "siegeengine_timeout" {
+  default = 30
 }
