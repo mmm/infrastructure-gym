@@ -1,0 +1,49 @@
+#!/bin/sh
+
+export KUBECONFIG="${HOME}/.kube/do.yaml"
+export NS="mmm-dev"
+
+usage() {
+  echo "Usage: $0 deployment"
+}
+
+die() {
+  local message=$1
+  $message && echo $message
+  exit 1
+}
+
+pods_in_deployment() {
+  local deployment=$1
+  kubectl --kubeconfig $KUBECONFIG -n $NS get pods | awk "/${deployment}/ { print \$1 }"
+}
+
+create_pod_logs_pane() {
+  local session=$1
+  local pod=$2
+
+  tmux has-session -t $session 2>/dev/null \
+    && tmux split-window -t $session "exec kubectl --kubeconfig $KUBECONFIG -n $NS logs -f $pod" \
+    || tmux new-session -d -s $session "exec kubectl --kubeconfig $KUBECONFIG -n $NS logs -f $pod" \
+
+  tmux select-layout -t $session tiled >/dev/null
+}
+
+create_deployment_logs_window() {
+  local session=$1
+  local deployment=$2
+  for pod in $(pods_in_deployment $deployment); do
+    create_pod_logs_pane $session $pod
+  done
+}
+
+main() {
+  [ $# -lt 1 ] && usage && die
+  local deployment=$1
+  local session="$0-$deployment-$$"
+  create_deployment_logs_window $session $@
+  tmux set-window-option -t $session synchronize-panes on >/dev/null
+  exec tmux attach -t $session
+}
+
+main "$@"
