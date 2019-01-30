@@ -1,0 +1,39 @@
+#!/bin/sh
+
+export KUBECONFIG="${HOME}/.kube/do.yaml"
+export NS="mmm-dev"
+
+usage() {
+  echo "Usage: $0 pod1 pod2 ... podN"
+}
+
+die() {
+  local message=$1
+  $message && echo $message
+  exit 1
+}
+
+create_pod_exec_pane() {
+  local session=$1
+  local pod=$2
+
+  tmux has-session -t $session 2>/dev/null \
+    && tmux split-window -t $session "exec kubectl --kubeconfig $KUBECONFIG -n $NS exec -it $pod -- bash" \
+    || tmux new-session -d -s $session "exec kubectl --kubeconfig $KUBECONFIG -n $NS exec -it $pod -- bash" \
+
+  tmux select-layout -t $session tiled >/dev/null
+}
+
+main() {
+  [ $# -lt 1 ] && usage && die
+  local session="$0-$$"
+  for pod in "$@"; do
+    create_pod_exec_pane $session $pod
+  done
+  tmux set-window-option -t $session synchronize-panes on >/dev/null
+  exec tmux attach -t $session
+}
+
+main "$@"
+
+#TODO sure would be nice to handle a pattern of pods

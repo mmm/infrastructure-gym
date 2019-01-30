@@ -16,7 +16,7 @@ resource "kubernetes_deployment" "heater" {
   }
 
   spec {
-    replicas = 10
+    replicas = "${var.heater_replicas}"
     selector {
       match_labels {
         App = "heater-${var.heater_name}"
@@ -38,6 +38,20 @@ resource "kubernetes_deployment" "heater" {
           port {
             container_port = "${var.heater_port}"
           }
+          env = [
+            {
+              name = "HEATER_THREADS"
+              value = "${var.heater_threads_per_replica}"
+            },
+            {
+              name = "HEATER_TIMEOUT"
+              value = "${var.heater_timeout}"
+            },
+            {
+              name = "HEATER_PORT"
+              value = "${var.heater_port}"
+            },
+          ]
         }
       }
     }
@@ -51,7 +65,7 @@ resource "kubernetes_service" "heater" {
   }
   spec {
     selector {
-      App = "${kubernetes_deployment.heater.metadata.0.labels.App}"
+      App = "heater-${var.heater_name}"
     }
     port {
       port = "${var.heater_port}"
