@@ -1,0 +1,5 @@
+bucket = "some-state-bucket"
+#key= you need to specify --backend-config "key=blah" in the calling terraform command!
+region = "us-east-1"
+access_key = "access-key"
+secret_key = "secret-key"

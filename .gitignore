@@ -6,6 +6,7 @@ tmp
 *.tfvars
 
 backend.tf
+backend-*.tf
 
 terraform/userdata/default.sh
 
