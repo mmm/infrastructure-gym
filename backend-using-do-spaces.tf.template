@@ -1,0 +1,10 @@
+bucket = "some-state-bucket"
+#key= you need to specify --backend-config "key=blah" in the calling terraform command!
+region = "us-west-2" # this is there to trick the S3 backend into using a spaces bucket
+endpoint = "https://ams3.digitaloceanspaces.com"
+access_key = "access-key"
+secret_key = "secret-key"
+skip_credentials_validation = true
+skip_get_ec2_platforms = true
+skip_requesting_account_id = true
+skip_metadata_api_check = true
