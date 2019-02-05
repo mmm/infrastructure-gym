@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func doSomeWork() {
@@ -53,6 +55,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", generateHeat)
+	http.Handle("/metrics", promhttp.Handler())
 
 	log.Printf("heater: started service listening on port: %s", heaterPort)
 	err := http.ListenAndServe(":"+heaterPort, nil)

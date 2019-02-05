@@ -2,7 +2,7 @@ default: version list
 
 NAMESPACE=markmims
 IMAGE=$(shell basename $(PWD))
-VERSION=0.0.2
+VERSION=0.0.3
 
 version: show-version
 show-version:
