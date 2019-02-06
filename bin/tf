@@ -14,11 +14,12 @@ die() {
 
 usage() {
   echo """
-  usage: $0 [-p <project>] [-e <environment>] [-u] <layer> <action>
+  usage: $0 [-p <project>] [-e <environment>] [-u] <provider>/<layer> <action>
     where
       -p project name (defaults to TF_VAR_project env var)
       -e environment name (defaults to TF_VAR_environment env var)
       -u update ansible archive
+      provider is 'do', 'k8s', etc
       layer is 'core', etc
       action is one of 'plan', 'apply', or 'destroy'
   """
@@ -27,6 +28,7 @@ usage() {
 check_args() {
   if [ -z "$project" ] || \
      [ -z "$environment" ] || \
+     [ -z "$provider" ] || \
      [ -z "$layer" ] || \
      [ -z "$action" ]; then
     usage
@@ -84,7 +86,7 @@ archive_ansible() {
 }
 
 init_terraform() {
-  state_key="infrastructure/${project}/${environment}/state/${layer}.tfstate"
+  state_key="infrastructure/${project}/${environment}/state/${provider}/${layer}.tfstate"
   terraform init \
     -backend-config "${project_dir}/backend.tf" \
     -backend-config "key=${state_key}" \
@@ -132,9 +134,10 @@ main() {
   environment=${environment_opt:-$TF_VAR_environment} # opt overrides env default
 
   shift $(($OPTIND - 1))
-  layer=$1
+  provider_slash_layer=$1
+  provider="${provider_slash_layer%%/*}"
+  layer="${provider_slash_layer##*/}"
   action=$2
-
   check_args
 
   region="${TF_VAR_region:-ams3}"
@@ -145,8 +148,8 @@ main() {
 
   archive_ansible # need to do this only on 'apply' (and prob not for the core layer if we wanna add ansible into that)
 
-  cd ${project_dir}/terraform/layers/${layer} \
-    || die "failed to find layer $layer"
+  cd ${project_dir}/terraform/layers/${provider}/${layer} \
+    || die "failed to find layer $layer for prodiver ${provider}"
 
   # clean up any cruft
   [ -d .terraform ] && rm -rf .terraform

@@ -1,6 +1,6 @@
 
 data "template_file" "userdata" {
-  template = "${file("../../userdata/default.sh.tpl")}"
+  template = "${file("../../../userdata/default.sh.tpl")}"
   vars = {
     project = "${var.ansible_tarball["project"]}"
     environment = "${var.ansible_tarball["environment"]}"
@@ -14,70 +14,56 @@ data "template_file" "userdata" {
   }
 }
 
-resource "digitalocean_volume" "dev_home" {
-  count = "${var.count}"
-  name = "${var.droplet_name}-${count.index}-home"
-  region = "${var.region}"
-  size = 500
-}
-
-resource "digitalocean_droplet" "dev" {
+resource "digitalocean_droplet" "bastion" {
   count = "${var.count}"
   image = "ubuntu-16-04-x64"
   name = "${var.droplet_name}-${count.index}"
   region = "${var.region}"
-  size = "s-4vcpu-8gb"
+  size = "s-1vcpu-1gb"
   ssh_keys = ["${var.ssh_keys}"]
-  tags = ["${var.tags}"]
-  volume_ids = ["${element(digitalocean_volume.dev_home.*.id, count.index)}"]
+  tags = ["${var.tags}", "${var.bastion_subnet}"]
   user_data = "${data.template_file.userdata.rendered}"
   private_networking = true
 }
 
-resource "digitalocean_firewall" "dev" {
-  name = "22-from-jump"
+resource "digitalocean_floating_ip" "bastion" {
+  count = "${var.count}"
+  region = "${var.region}"
+  droplet_id = "${element(digitalocean_droplet.bastion.*.id, count.index)}"
+}
 
-  droplet_ids = ["${digitalocean_droplet.dev.*.id}"]
+resource "digitalocean_firewall" "firewall_outside_to_bastion" {
+  name = "${var.project}-${var.environment}-outside-to-bastion"
+
+  tags = ["${var.bastion_subnet}"]
 
   inbound_rule = [
     {
       protocol           = "tcp"
       port_range         = "22"
-      source_tags        = ["dev"]
+      source_addresses   = ["0.0.0.0/0", "::/0"]
     },
-  ]
-
-  outbound_rule = [
-    {
-      protocol                = "icmp"
-      port_range              = "1-65535"
-      destination_addresses   = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol                = "tcp"
-      port_range              = "1-65535"
-      destination_addresses   = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      protocol                = "udp"
-      port_range              = "1-65535"
-      destination_addresses   = ["0.0.0.0/0", "::/0"]
-    },
-  ]
-}
-
-resource "digitalocean_firewall" "dev2dev" {
-  name = "dev-to-dev"
-
-  droplet_ids = ["${digitalocean_droplet.dev.*.id}"]
-
-  inbound_rule = [
     {
       protocol           = "tcp"
-      port_range         = "1-65535"
-      source_tags        = ["${var.source_tags}"]
+      port_range         = "443"
+      source_addresses   = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      protocol           = "udp"
+      port_range         = "63000-63100"
+      source_addresses   = ["0.0.0.0/0", "::/0"]
     },
   ]
+
+  outbound_rule = []
+}
+
+resource "digitalocean_firewall" "firewall_bastion_to_outside" {
+  name = "${var.project}-${var.environment}-bastion-to-outside"
+
+  tags = ["${var.bastion_subnet}"]
+
+  inbound_rule = []
 
   outbound_rule = [
     {

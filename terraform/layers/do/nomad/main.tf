@@ -11,7 +11,7 @@ data "terraform_remote_state" "core" {
 
   config {
     bucket                      = "${var.state_bucket}"
-    key                         = "infrastructure/${var.project}/${var.environment}/state/core.tfstate"
+    key                         = "infrastructure/${var.project}/${var.environment}/state/do/core.tfstate"
     region                      = "us-west-2" # not used, but hard-coded to trick the state back-end
     endpoint                    = "https://${var.region}.digitaloceanspaces.com"
     access_key                  = "${var.aws_access_key_id}"
@@ -23,20 +23,20 @@ data "terraform_remote_state" "core" {
   }
 }
 
-resource "digitalocean_tag" "role_postgresql" {
-  name = "${var.project}:${var.environment}:ansible_role:postgresql"
+resource "digitalocean_tag" "role_nomad_server" {
+  name = "${var.project}:${var.environment}:ansible_role:nomad_server"
 }
 
-module "postgresql" {
-  source = "../../modules/worker_droplet"
-  droplet_name = "${var.project}-${var.environment}-postgresql"
+module "nomad_servers" {
+  source = "../../../modules/do/worker_droplet"
+  droplet_name = "${var.project}-${var.environment}-nomad-server"
   count = 1 
   project = "${var.project}"
   environment = "${var.environment}"
   region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
-    "${digitalocean_tag.role_postgresql.id}",
+    "${digitalocean_tag.role_nomad_server.id}",
   ]
   droplet_subnet = "${data.terraform_remote_state.core.digitalocean_tag_inside_subnet}"
   ansible_tarball = {
@@ -48,24 +48,24 @@ module "postgresql" {
     secret_key = "${var.aws_secret_access_key}"
     digitalocean_token = "${var.digitalocean_token}"
     vault_password = "${var.ansible_vault_password}"
-    role = "${digitalocean_tag.role_postgresql.name}"
+    role = "${digitalocean_tag.role_nomad_server.name}"
   }
 }
 
-resource "digitalocean_tag" "role_mysql" {
-  name = "${var.project}:${var.environment}:ansible_role:mysql"
+resource "digitalocean_tag" "role_nomad_client" {
+  name = "${var.project}:${var.environment}:ansible_role:nomad_client"
 }
 
-module "mysql" {
-  source = "../../modules/worker_droplet"
-  droplet_name = "${var.project}-${var.environment}-mysql"
-  count = 1 
+module "nomad_clients" {
+  source = "../../../modules/do/worker_droplet"
+  droplet_name = "${var.project}-${var.environment}-nomad-client"
+  count = 3 
   project = "${var.project}"
   environment = "${var.environment}"
   region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
-    "${digitalocean_tag.role_mysql.id}",
+    "${digitalocean_tag.role_nomad_client.id}",
   ]
   droplet_subnet = "${data.terraform_remote_state.core.digitalocean_tag_inside_subnet}"
   ansible_tarball = {
@@ -77,6 +77,7 @@ module "mysql" {
     secret_key = "${var.aws_secret_access_key}"
     digitalocean_token = "${var.digitalocean_token}"
     vault_password = "${var.ansible_vault_password}"
-    role = "${digitalocean_tag.role_mysql.name}"
+    role = "${digitalocean_tag.role_nomad_client.name}"
   }
 }
+

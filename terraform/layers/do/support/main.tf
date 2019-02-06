@@ -12,7 +12,7 @@ data "terraform_remote_state" "core" {
 
   config {
     bucket                      = "${var.state_bucket}"
-    key                         = "infrastructure/${var.project}/${var.environment}/state/core.tfstate"
+    key                         = "infrastructure/${var.project}/${var.environment}/state/do/core.tfstate"
     region                      = "us-west-2" # not used, but hard-coded to trick the state back-end
     endpoint                    = "https://${var.region}.digitaloceanspaces.com"
     access_key                  = "${var.aws_access_key_id}"
@@ -29,7 +29,7 @@ resource "digitalocean_tag" "role_bastion" {
 }
 
 module "bastions" {
-  source = "../../modules/bastion_droplet"
+  source = "../../../modules/do/bastion_droplet"
   droplet_name = "${var.project}-${var.environment}-bastion"
   count = 1 
   project = "${var.project}"
@@ -58,7 +58,7 @@ resource "digitalocean_tag" "role_consul" {
 }
 
 module "consul_servers" {
-  source = "../../modules/droplet"
+  source = "../../../modules/do/droplet"
   droplet_name = "${var.project}-${var.environment}-consul"
   count = 1
   project = "${var.project}"
