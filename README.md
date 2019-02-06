@@ -44,25 +44,32 @@ Examples are provided here to automate the buildout of
 
 # Layers
 
-It's best-practice to separate Terraform templates into separate layers each
-with independent state storage/locking.
+It's best-practice to separate Terraform templates into separate layers
+organized by provider.  Each layer has independent state storage/locking.
 
-- core (account, state buckets, infrastructure buckets, tags, network config,
+- do/core (account, state buckets, infrastructure buckets, tags, network config,
   project config, etc)
-- support (jump boxes, dns/service discovery, auth, key mgmt, cert mgmt, etc)
-- app (servers / workers)
-- edge (lb, firewalls, network config)
+- do/support (jump boxes, dns/service discovery, auth, key mgmt, cert mgmt, etc)
+- do/app (servers / workers)
+- do/edge (lb, firewalls, network config)
 - etc...
 
+and
+
+- k8s/core (namespace)
+- k8s/prometheus (monitoring)
+- k8s/heater
+- k8s/siege
+- ...
 
 ## Tools
 
 There's a `tf` utility... think of it as a missing `layer` subcommand
 
     # doesn't run, just for the idea
-    terraform layer <layer> <action>
+    terraform layer <provider>/<layer> <action>
 
 or plugin.  In reality, use it like this
 
-    tf [-p <project>] [-e <environment>] [-u] <layer> <action>
+    tf [-p <project>] [-e <environment>] [-u] <provider>/<layer> <action>
 

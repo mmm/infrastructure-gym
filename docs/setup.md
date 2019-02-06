@@ -27,13 +27,13 @@ ignore this new file.
 
 ### setup `core`
 
-    tf core plan
-    tf core apply
+    tf do/core plan
+    tf do/core apply
 
 ### build the `support` layer
 
-    tf support plan
-    tf support apply
+    tf do/support plan
+    tf do/support apply
 
 ## check out your droplets
 
@@ -44,6 +44,6 @@ command for the `support` layer above.
 
 Reverse out your layers
 
-    tf support destroy
-    tf core destroy
+    tf do/support destroy
+    tf do/core destroy
 

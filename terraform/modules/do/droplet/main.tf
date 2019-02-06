@@ -1,6 +1,6 @@
 
 data "template_file" "userdata" {
-  template = "${file("../../userdata/default.sh.tpl")}"
+  template = "${file("../../../userdata/default.sh.tpl")}"
   vars = {
     project = "${var.ansible_tarball["project"]}"
     environment = "${var.ansible_tarball["environment"]}"
