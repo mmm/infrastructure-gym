@@ -72,7 +72,7 @@ resource "kubernetes_service" "heater" {
       target_port = "${var.heater_port}"
     }
 
-    type = "LoadBalancer"
+    type = "ClusterIP"
     session_affinity = "ClientIP"
     #externalTrafficPolicy = "Local"
   }
