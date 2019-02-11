@@ -37,6 +37,6 @@ variable "heater_port" {
   default = 80
 }
 
-output "lb_ip" {
-  value = "${kubernetes_service.heater.load_balancer_ingress.0.ip}"
-}
+#output "lb_ip" {
+  #value = "${kubernetes_service.heater.load_balancer_ingress.0.ip}"
+#}
