@@ -6,13 +6,13 @@ provider "helm" {
   "kubernetes" {
     config_path = "${var.kubeconfig}"
   }
+  version = "~> 0.8"
 }
 
 resource "helm_release" "prom" {
-    name      = "monitoring"
+    name      = "${var.project}-${var.environment}-monitoring"
     namespace = "${var.project}-${var.environment}"
     chart     = "stable/prometheus"
-    #chart     = "stable/prometheus-operator"
     #version   = "2.2.0"
     #version   = "1.6.0"
 

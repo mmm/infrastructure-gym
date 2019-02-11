@@ -39,7 +39,8 @@ resource "digitalocean_kubernetes_cluster" "k8s" {
   node_pool {
     name = "${var.project}-${var.environment}-k8s-pool-0"
     node_count = 3
-    size       = "s-4vcpu-8gb"
+    #size       = "s-4vcpu-8gb"
+    size       = "c-8"
     tags = [
       "${digitalocean_tag.k8s.id}",
     ]

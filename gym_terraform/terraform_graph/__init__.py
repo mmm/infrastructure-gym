@@ -1,0 +1,3 @@
+from gym_terraform.terraform_graph.terraform_graph import TerraformGraph
+#from gym_soccer.envs.soccer_empty_goal import SoccerEmptyGoalEnv
+#from gym_soccer.envs.soccer_against_keeper import SoccerAgainstKeeperEnv
