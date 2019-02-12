@@ -1,0 +1,117 @@
+#!/bin/bash
+
+set -eo pipefail
+[ ! -z "${TRACE:-}" ] && set -x
+
+log() {
+  echo "* [${2:-INFO}] $1"
+}
+
+die() {
+  log >&2 "$1" "ERROR"
+  exit 1
+}
+
+usage() {
+  echo """
+  usage: $0 [-p <project>] [-e <environment>] [-l <layer>] <action>
+    where
+      -p project name (defaults to TF_VAR_project env var)
+      -e environment name (defaults to TF_VAR_environment env var)
+      -l layer (defaults to TF_VAR_layer env var)
+      action is one of 'check', 'create', 'retrieve', 'update', or 'delete'
+  """
+}
+
+check_args() {
+  if [ -z "$project" ] || \
+     [ -z "$environment" ] || \
+     [ -z "$layer" ] || \
+     [ -z "$action" ]; then
+    usage
+    die 'need args'
+  fi
+}
+
+spaces_cmd() {
+  local cmd=$*
+  s3cmd \
+    --access_key="${TF_VAR_aws_access_key_id}" \
+    --secret_key="${TF_VAR_aws_secret_access_key}" \
+    --host="${TF_VAR_region}.digitaloceanspaces.com" \
+    --host-bucket="%(bucket)s.${TF_VAR_region}.digitaloceanspaces.com" \
+    ${cmd}
+}
+
+check_ansible_archive() {
+  local key=$1
+  spaces_cmd ls s3://${state_bucket}/${key} | grep -qs ansible
+}
+
+remove_ansible_archive() {
+  local key=$1
+  spaces_cmd rm s3://${state_bucket}/${key} \
+    || die "unable to remove ansible archive s3://${state_bucket}/${key}"
+}
+
+publish_ansible_archive() {
+  local tarball_path=$1
+  local key=$2
+  spaces_cmd put $tarball_path s3://${state_bucket}/${key} \
+    || die "Unable to publish ansible archive to s3://${state_bucket}/${key}"
+}
+
+create_ansible_archive() {
+  local tarball_path=$1
+  cd ${project_dir}/provision
+  tar czf $tarball_path --exclude=tmp ansible
+}
+
+archive_ansible() {
+  local key="infrastructure/${project}/${environment}/ansible/ansible.tar.gz"
+
+  if [ -n "$update_archive" ]; then
+    remove_ansible_archive $key
+  fi
+
+  if ! check_ansible_archive $key; then
+    local tempfile=$(mktemp -p"/tmp" ansible-XXXXXX.tar.gz)
+    create_ansible_archive $tempfile
+    publish_ansible_archive $tempfile $key
+    rm -f $tempfile
+  fi
+}
+
+
+main() {
+
+  while getopts ':p:e:l:' OPT; do
+    case $OPT in
+      p) project_opt=$OPTARG ;;
+      e) environment_opt=$OPTARG ;;
+      l) layer_opt=$OPTARG ;;
+    esac
+  done
+  project=${project_opt:-$TF_VAR_project} # opt overrides env default
+  environment=${environment_opt:-$TF_VAR_environment} # opt overrides env default
+  layer=${layer_opt:-$TF_VAR_layer} # opt overrides env default
+
+  shift $(($OPTIND - 1))
+  action=$1
+  check_args
+
+  region="${TF_VAR_region:-ams3}"
+  state_bucket="${TF_VAR_stack_state_bucket}" #"do-stacks-ams3"
+
+  project_dir=$(git rev-parse --show-toplevel)
+
+
+  case $action in
+    *)
+      archive_ansible
+      ;;
+  esac
+
+}
+
+main "$@"
