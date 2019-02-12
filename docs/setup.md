@@ -20,6 +20,12 @@ the workspace directory, copy `terraform.tfvars.template` to `terraform.tfvars`
 and add the fingerprints to your keys in place of the examples shown.  Git will
 ignore this new file.
 
+## Backend for Terraform State
+
+Copy an example terraform backend config from `terraform/backends/` (for
+example, `terraform/backends/s3.tf.template`) to a new file `backend.tf` at the
+project root and fill in the missing information about your account.
+
 
 # Create some test droplets
 
