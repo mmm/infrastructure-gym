@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export KUBECONFIG="${HOME}/.kube/do.yaml"
+export KUBECONFIG="${HOME}/.kube/mmm-dev-k8s.yaml"
 export NS="mmm-dev"
 
 usage() {
