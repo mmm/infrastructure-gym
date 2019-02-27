@@ -5,12 +5,18 @@ import gym
 import logging
 
 log = logging.getLogger('SimpleK8sWebApp-v0')
-logging.basicConfig(level=logging.DEBUG)
-#logging.basicConfig(filename='simple-k8s-webapp-v0.log', level=logging.DEBUG)
+
+# INFO just covers the basics of progress
+# DEBUG lets you watch terraform output
+logging.basicConfig(level=logging.INFO)
 
 log.info("starting training")
 
-env = gym.make('SimpleK8sWebApp-v0')
+env = gym.make('SimpleK8sWebApp-v0',
+               project='simple',
+               environment='example',
+               project_dir='..',
+               dry_run=True)
 
 for i_episode in range(1):
     observation = env.reset()
@@ -22,3 +28,5 @@ for i_episode in range(1):
         if done:
             log.info("Episode finished after {} timesteps".format(t+1))
             break
+
+env.close()

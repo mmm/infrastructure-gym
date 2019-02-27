@@ -1,5 +1,5 @@
 
-Want to support referencing an individual environment as
+Supports referencing an individual environment as
 
 ```
 import gym_terraform

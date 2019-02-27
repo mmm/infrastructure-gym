@@ -8,7 +8,7 @@ class TerraformGraph():
     """ Terraform graph
     """
 
-    def __init__(self, project, environment, project_dir):
+    def __init__(self, project, environment, project_dir, dry_run=False):
         """ init
         """
         self.log = logging.getLogger(type(self).__name__)
@@ -16,6 +16,7 @@ class TerraformGraph():
         self.project = project
         self.environment = environment
         self.project_dir = project_dir
+        self.dry_run = dry_run
         return
 
     def __del__(self):
@@ -30,7 +31,7 @@ class TerraformGraph():
             returns: None
         """
         self.log.debug("add_layer: %s" % layer)
-        self.__terraform_layer_action(layer, 'apply')
+        self._terraform_layer_action(layer, 'apply')
         return
 
     def remove_layer(self, layer):
@@ -39,7 +40,7 @@ class TerraformGraph():
             returns: None
         """
         self.log.debug("remove_layer: %s" % layer)
-        self.__terraform_layer_action(layer, 'destroy')
+        self._terraform_layer_action(layer, 'destroy')
         return
 
     def update_layer(self, layer):
@@ -48,7 +49,7 @@ class TerraformGraph():
             returns: None
         """
         self.log.debug("update_layer: %s" % layer)
-        self.__terraform_layer_action(layer, 'apply')
+        self._terraform_layer_action(layer, 'apply')
         return
 
     def get_layer_nodes(self, layer):
@@ -57,7 +58,7 @@ class TerraformGraph():
             returns: nodemap of some sort
         """
         self.log.debug("get_layer_nodes: %s" % layer)
-        # self.__terraform_layer_action(layer, 'graph')
+        self._terraform_layer_action(layer, 'graph')
         return
 
     def reset_layer_storage(self, layer):
@@ -66,10 +67,10 @@ class TerraformGraph():
             returns: None
         """
         self.log.debug("reset_layer_storage: %s" % layer)
-        self.__terraform_layer_action(layer, '???')
+        self._terraform_layer_action(layer, '???')
         return
 
-    def __terraform_layer_action(self, layer, action):
+    def _terraform_layer_action(self, layer, action):
         """ perform terraform action for layer
             args:
                 - layer name
@@ -81,7 +82,8 @@ class TerraformGraph():
         """
         self.log.debug("performing terraform %s for layer %s"
                        % (action, layer))
-        cmd = "bin/tf -p %s -e %s %s %s" % (self.project,
+        cmd = "echo " if self.dry_run else ""
+        cmd += "bin/tf -p %s -e %s %s %s" % (self.project,
                                             self.environment,
                                             layer,
                                             action)
