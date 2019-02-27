@@ -2,10 +2,15 @@ terraform {
   backend "s3" {}
 }
 
+provider "null" {
+  version = "~> 2.0"
+}
+
 provider "helm" {
   "kubernetes" {
     config_path = "${var.kubeconfig}"
   }
+  version = "~> 0.8"
 }
 
 #resource "kubernetes_persistent_volume_claim" "example" {

@@ -12,5 +12,8 @@ terraform/userdata/default.sh
 
 *.tar.gz
 
-.ropeproject
 discourse
+
+.ropeproject
+*.pyc
+*.log

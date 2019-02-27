@@ -1,6 +1,6 @@
-curl --request GET \
-  --url https://api.digitalocean.com/v2/kubernetes/clusters/${do_k8s_cluster_id}/kubeconfig \
-  --header "authorization: Bearer ${DO_TOKEN}"
+#!/bin/bash
 
+CLUSTER_NAME="mmm-dev-k8s-cluster"
 
-#doctl kubernetes cluster kubeconfig show mmm-dev-k8s-cluster > ~/.kube/mmm-dev-k8s-cluster.yaml
+export DIGITALOCEAN_ENABLE_BETA=true
+doctl kubernetes cluster kubeconfig show ${CLUSTER_NAME} > ~/.kube/${CLUSTER_NAME}.yaml

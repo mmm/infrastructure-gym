@@ -1,0 +1,50 @@
+#!/bin/bash
+set -eo pipefail
+[ ! -z "${TRACE:-}" ] && set -x
+
+log() {
+  echo "* [${2:-INFO}] $1"
+}
+
+die() {
+  log >&2 "$1" "ERROR"
+  exit 1
+}
+
+usage() {
+  echo """
+  usage: $0 [-p <project>] [-e <environment>] envs/<gym-env>
+    where
+      -p project name (defaults to TF_VAR_project env var)
+      -e environment name (defaults to TF_VAR_environment env var)
+      gym-env is 'example1', etc
+  """
+}
+
+check_args() {
+  if [ -z "$project" ] || \
+     [ -z "$environment" ] || \
+     [ -z "$gym_env" ]; then
+    usage
+    die 'bad args'
+  fi
+}
+
+main() {
+  while getopts ':p:e:' OPT; do
+    case $OPT in
+      p) project_opt=$OPTARG ;;
+      e) environment_opt=$OPTARG ;;
+    esac
+  done
+  project=${project_opt:-$TF_VAR_project} # opt overrides env default
+  environment=${environment_opt:-$TF_VAR_environment} # opt overrides env default
+
+  shift $(($OPTIND - 1))
+  envs_slash_gym_env=$1
+  gym_env="${envs_slash_gym_env##*/}"
+  check_args
+
+}
+
+main "$@"

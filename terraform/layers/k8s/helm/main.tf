@@ -2,8 +2,13 @@ terraform {
   backend "s3" {}
 }
 
+provider "null" {
+  version = "~> 2.0"
+}
+
 provider "kubernetes" {
   config_path = "${var.kubeconfig}"
+  version = "~> 1.5"
 }
 
 resource "kubernetes_service_account" "tiller" {

@@ -41,21 +41,26 @@ check_provisioner_archive_exists() {
 
 init_terraform() {
   state_key="infrastructure/${project}/${environment}/state/${provider}/${layer}.tfstate"
-  terraform init \
+  TF_IN_AUTOMATION=true terraform init \
     -backend-config "${project_dir}/backend.tf" \
     -backend-config "key=${state_key}" \
+    -no-color \
     -force-copy \
+    -input=false \
     || die 'failed to init terraform'
 }
 
 run_terraform() {
-  terraform $action \
+  TF_IN_AUTOMATION=true terraform $action \
     -var "project=${project}" \
     -var "environment=${environment}" \
     -var "layer=${layer}" \
     -var "region=${region}" \
     -var "state_bucket=${state_bucket}" \
     -var-file "${project_dir}/terraform.tfvars" \
+    -auto-approve \
+    -no-color \
+    -input=false \
     || die 'failed to run terraform'
 }
 

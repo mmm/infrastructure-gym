@@ -4,6 +4,7 @@ terraform {
 
 provider "kubernetes" {
   config_path = "${var.kubeconfig}"
+  version = "~> 1.5"
 }
 
 resource "kubernetes_namespace" "project-environment" {
