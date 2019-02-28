@@ -51,33 +51,35 @@ init_terraform() {
 }
 
 run_terraform() {
-  TF_IN_AUTOMATION=true terraform $action \
-    -var "project=${project}" \
-    -var "environment=${environment}" \
-    -var "layer=${layer}" \
-    -var "region=${region}" \
-    -var "state_bucket=${state_bucket}" \
-    -var-file "${project_dir}/terraform.tfvars" \
-    -auto-approve \
-    -no-color \
-    -input=false \
-    || die 'failed to run terraform'
-}
+  cmd="TF_IN_AUTOMATION=true terraform $action "
 
-graph_terraform() {
-  #Options:
+  vars="-var \"project=${project}\" "
+  vars+="-var \"environment=${environment}\" "
+  vars+="-var \"layer=${layer}\" "
+  vars+="-var \"region=${region}\" "
+  vars+="-var \"state_bucket=${state_bucket}\" "
+  vars+="-var-file \"${project_dir}/terraform.tfvars\" "
 
-    #-draw-cycles   Highlight any cycles in the graph with colored edges.
-                   #This helps when diagnosing cycle errors.
+  case $action in
+    plan)
+      cmd+=$vars
+      cmd+="-input=false "
+      ;;
+    apply|destroy)
+      cmd+=$vars
+      cmd+="-auto-approve -input=false "
+      ;;
+    graph)
+      cmd+="-type=plan-destroy "
+      ;;
+    *)
+      ;;
+  esac
 
-    #-no-color      If specified, output won't contain any color.
+  cmd+="-no-color "
+  cmd+=$remaining_args
 
-    #-type=plan     Type of graph to output. Can be: plan, plan-destroy, apply,
-                   #validate, input, refresh.
-
-  terraform $action \
-    -type=plan-destroy \
-    || die 'failed to run terraform graph'
+  eval "$cmd" || die 'failed to run terraform'
 }
 
 main() {
@@ -95,7 +97,13 @@ main() {
   provider_slash_layer=$1
   provider="${provider_slash_layer%%/*}"
   layer="${provider_slash_layer##*/}"
-  action=$2
+
+  shift
+  action=$1
+
+  shift
+  remaining_args=$@
+
   check_args
 
   region="${TF_VAR_region:-ams3}"
@@ -115,15 +123,7 @@ main() {
 
   #create_state_bucket
   init_terraform
-
-  case $action in
-    graph)
-      graph_terraform
-      ;;
-    *)
-      run_terraform
-      ;;
-  esac
+  run_terraform
 
   #if [ "${action}" == "destroy" ]; then
     #remove_state
