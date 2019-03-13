@@ -16,8 +16,8 @@ Created in the spirit of [OpenAI's Gym](https://gym.openai.com/):
 
 but we want to train RL agents to use cloud APIs to manage infrastructure.
 
-The basic idea is this would run like any [openai gym
-environment](https://gym.openai.com/docs/):
+The basic idea is this would run like any [OpenAI Gym
+Environment](https://gym.openai.com/docs/):
 
 <h4 align="left">
   <img src="docs/infrastructure-gym-SimpleK8sWebApp-10x5.svg"
@@ -29,8 +29,8 @@ with just a few more prerequisites (cloud provider accounts) in place to
 initialize the actual infrastructure for the environment.
 
 Behind the scenes, the specific infrastructure environment (here it's
-`SimpleK8sWebApp-v0`) is built using terraform templates for each layer. This
-environment can then apply/destroy the various layers approprately whenever an
+`SimpleK8sWebApp-v0`) is built using Terraform templates for each layer. This
+environment can then apply/destroy the various layers appropriately whenever an
 agent calls `{make, reset, step, render, close}`.
 
 <h4 align="left">
@@ -40,7 +40,7 @@ agent calls `{make, reset, step, render, close}`.
 </h4>
 
 The underlying infrastructure created for this example is a really
-simple web-app spun up in kubernetes:
+simple web-app spun up in Kubernetes:
 
 <h4 align="center">
   <img src="docs/SimpleK8sWebApp.svg"
@@ -50,7 +50,7 @@ simple web-app spun up in kubernetes:
 
 Here, we represent an environment in terms of (Terraform) infrastructure
 graphs.  We include various ways to generate load and then measure response via
-prometheus queries.  Reward varies by example, but basically comes down to
+Prometheus queries.  Reward varies by example, but basically comes down to
 optimizing cloud infrastructure utilization wrt cost.
 
 To build your own infrastructure environments, and really even to _use_ such an
@@ -61,15 +61,15 @@ organize all of the infrastructure that makes up such an environment.
 # Tools
 
 The primary tool we use to manage infrastructure is
-[Terraform](https://terraform.io/). There are aditional provider-specific tools
-(the kubernetes provider requires `kubectl` to be installed and configured),
+[Terraform](https://terraform.io/). There are additional provider-specific tools
+(the Kubernetes provider requires `kubectl` to be installed and configured),
 but let's explore some necessary concepts around Terraform before digging
 through the rest of the setup process.
 
 ## Terraform Providers
 
 Terraform supports managing infrastructure on many different [infrastructure
-providers](https://www.terraform.io/docs/providers/index.html) ... including
+providers](https://www.terraform.io/docs/providers/index.html), including
 many public clouds such as GCP, AWS, DigitalOcean, etc.
 
 This current project will manage infrastructure using the following providers
@@ -85,11 +85,11 @@ This current project will manage infrastructure using the following providers
 
 Other providers can be added as needed.  There will be development effort to
 get security groups, IAM roles, etc done properly on each new infrastructure
-provider, but there are plenty of existing terraform templates available.
+provider, but there are plenty of existing Terraform templates available.
 
 ## Infrastructure Layers
 
-Infrastructure components are organized into [terraform
+Infrastructure components are organized into [Terraform
 layers](docs/terraform_layers.md):
 
 ### For the `k8s` provider
@@ -119,8 +119,8 @@ various (configurable)
 This project stores terraform state separately for each layer. The following
 backends have been set up to use with infrastructure gym environments:
 
-- do spaces
-- s3
+- DO spaces
+- S3
 
 Other state backends can be added as needed.
 
