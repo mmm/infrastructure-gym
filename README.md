@@ -94,9 +94,9 @@ layers](docs/terraform_layers.md):
 
 ### For the `k8s` provider
 
-- `k8s/heater` (simple web-app cluster used to generate load)
-- `k8s/siege-engine` (simple web-client cluster used to generate load)
-- `k8s/prometheus` (uses the helm provider to install prometheus-operator)
+- `k8s/heater` (simple web-app cluster used to simulate a web service)
+- `k8s/siege-engine` (simple web-client cluster used to generate load on heater app)
+- `k8s/prometheus` (used to collect data on performance of heater)
 - `k8s/postgresql` (uses the helm provider)
 - `k8s/core` (namespaces, helm/tiller, etc)
 
