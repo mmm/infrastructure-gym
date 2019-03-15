@@ -43,13 +43,13 @@ class TerraformGraph():
         self._terraform_layer_action(layer, 'destroy')
         return
 
-    def update_layer(self, layer):
+    def update_layer(self, layer, args=""):
         """ updates layer
             args: layer name
             returns: None
         """
-        self.log.debug("update_layer: %s" % layer)
-        self._terraform_layer_action(layer, 'apply')
+        self.log.debug("update_layer: %s %s" % (layer, args))
+        self._terraform_layer_action(layer, 'apply', args)
         return
 
     def get_layer_nodes(self, layer):
@@ -70,7 +70,7 @@ class TerraformGraph():
         self._terraform_layer_action(layer, '???')
         return
 
-    def _terraform_layer_action(self, layer, action):
+    def _terraform_layer_action(self, layer, action, args=""):
         """ perform terraform action for layer
             args:
                 - layer name
@@ -82,11 +82,15 @@ class TerraformGraph():
         """
         self.log.debug("performing terraform %s for layer %s"
                        % (action, layer))
+        if args != "":
+            self.log.debug("passing terraform args: %s" % args)
+
         cmd = "echo " if self.dry_run else ""
-        cmd += "bin/tf -p %s -e %s %s %s" % (self.project,
-                                            self.environment,
-                                            layer,
-                                            action)
+        cmd += "bin/tf -p %s -e %s %s %s %s" % (self.project,
+                                                self.environment,
+                                                layer,
+                                                action,
+                                                args)
         self.log.debug("running: %s" % cmd)
         result = subprocess.run(cmd.split(' '),
                                 shell=False,

@@ -6,7 +6,43 @@ from .. import terraform_graph
 
 
 class SimpleK8sWebApp(gym.Env):
-    metadata = {'render.modes': ['human']}
+    """
+    Description:
+        A simple web-based application ("heater") under load from a very active
+        client ("siege-engine").
+
+    Observation:
+        Type: Box(4)
+        Num	Observation                 Min         Max
+        0	Cart Position             -4.8            4.8
+        1	Cart Velocity             -Inf            Inf
+        2	Pole Angle                 -24 deg        24 deg
+        3	Pole Velocity At Tip      -Inf            Inf
+
+    Actions:
+        Type: Discrete(2)
+        Num	Action
+        0	Remove a heater replica
+        1	Add a heater replica
+
+    Reward:
+        Reward is TODO... 1 for every step taken, including the termination step
+
+    Starting State:
+        All observations are TODO... assigned a uniform random value in [-0.05..0.05]
+
+    Episode Termination:
+        TODO...
+        Pole Angle is more than 12 degrees
+        Cart Position is more than 2.4 (center of the cart reaches the edge of the display)
+        Episode length is greater than 200
+        Solved Requirements
+        Considered solved when the average reward is greater than or equal to 195.0 over 100 consecutive trials.
+    """
+
+    metadata = {
+        'render.modes': ['human']
+    }
 
     def __init__(self,
                  project,
@@ -45,16 +81,21 @@ class SimpleK8sWebApp(gym.Env):
     def step(self, action):
         self.log.info("step")
 
-        ob = self.graph.get_layer_nodes("k8s/heater")
         # self._take_action(action)
-        self.graph.update_layer("k8s/heater")
+        # action should be the new graph to apply
+        # in this case, it's heater replicas
+        replicas=5
+        self.graph.update_layer("k8s/heater",
+                                "--var heater_replicas=%d" % replicas)
+
+        self.log.debug("sleep %d during step" % self.time_between_steps)
+        time.sleep(self.time_between_steps)
+
+        ob = self.graph.get_layer_nodes("k8s/heater")
         # self.status = self.env.step()
         reward = 0.0
         # reward = self._get_reward()
         episode_over = False
-
-        self.log.debug("sleep %d after step" % self.time_between_steps)
-        time.sleep(self.time_between_steps)
 
         return ob, reward, episode_over, {}
 
