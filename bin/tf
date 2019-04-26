@@ -43,7 +43,7 @@ init_terraform() {
   state_key="infrastructure/${project}/${environment}/state/${provider}/${layer}.tfstate"
   TF_IN_AUTOMATION=true terraform init \
     -backend-config "${project_dir}/backend.tf" \
-    -backend-config "key=${state_key}" \
+    -backend-config "prefix=${state_key}" \
     -no-color \
     -force-copy \
     -input=false \
