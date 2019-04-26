@@ -56,6 +56,9 @@ class TerraformGraph():
         """ get nodes for layer
             args: layer name
             returns: nodemap of some sort
+                what about Box where
+                    dim1 is num nodes
+                    dim2 is avg load level
         """
         self.log.debug("get_layer_nodes: %s" % layer)
         self._terraform_layer_action(layer, 'graph')
@@ -91,6 +94,37 @@ class TerraformGraph():
                                                 layer,
                                                 action,
                                                 args)
+        self.log.debug("running: %s" % cmd)
+        result = subprocess.run(cmd.split(' '),
+                                shell=False,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT,
+                                cwd=self.project_dir)
+        self.log.debug(result.stdout)
+
+    def _kubectl_exec(self, layer, action, args=""):
+        """ perform k8s exec
+            action for layer
+            args:
+                - layer name
+                - action
+            returns: None
+
+            need to basically reproduce the terraform-layer subcommand here
+            that's `tf -p <project> -e <environment> <layer> <action>
+        """
+        self.log.debug("performing kubectl exec %s for layer %s"
+                       % (action, layer))
+        if args != "":
+            self.log.debug("passing kubectl args: %s" % args)
+
+        kubeconfig = "/home/mmm/.kube/mmm-dev-k8s-cluster.yaml"
+        prometheus_pod = "mmm-dev-monitoring-prometheus-server-6ff4b9dff-526t7"
+        cmd = "echo " if self.dry_run else ""
+        cmd += "kubectl --kubeconfig %s exec %s %s %s" % (kubeconfig,
+                                                          prometheus_pod,
+                                                          action,
+                                                          args)
         self.log.debug("running: %s" % cmd)
         result = subprocess.run(cmd.split(' '),
                                 shell=False,
