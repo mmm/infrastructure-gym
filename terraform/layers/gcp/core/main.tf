@@ -12,5 +12,12 @@ module "core_instance" {
   #machine_type = "n1-standard-1"
 
   ssh_keys = ["${var.ssh_keys}"]
+  ansible_tarball = {
+    project            = "${var.project}"
+    environment        = "${var.environment}"
+    region             = "${var.region}"
+    bucket             = "${var.state_bucket}"
+    vault_password     = "${var.ansible_vault_password}"
+    role               = "ugh"
+  }
 }
-
