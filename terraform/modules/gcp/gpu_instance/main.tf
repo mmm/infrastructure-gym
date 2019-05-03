@@ -1,4 +1,16 @@
 
+data "template_file" "userdata" {
+  template = "${file("../../../userdata/gcp/default.sh.tpl")}"
+  vars = {
+    project = "${var.ansible_tarball["project"]}"
+    environment = "${var.ansible_tarball["environment"]}"
+    region = "${var.ansible_tarball["region"]}"
+    bucket = "${var.ansible_tarball["bucket"]}"
+    ansible_role = "${var.ansible_tarball["role"]}"
+    ansible_vault_password = "${var.ansible_tarball["vault_password"]}"
+  }
+}
+
 resource "google_compute_instance" "gpu_instance" {
   count = "${var.count}"
   name = "${var.name}-${count.index}"
@@ -31,7 +43,7 @@ resource "google_compute_instance" "gpu_instance" {
     sshKeys = "ubuntu:${file("~/.ssh/id_rsa.pub")}"
   }
 
-  metadata_startup_script = "echo hi > /test.txt"
+  metadata_startup_script = "${data.template_file.userdata.rendered}"
 
   service_account {
     scopes = ["userinfo-email", "compute-ro", "storage-ro"]

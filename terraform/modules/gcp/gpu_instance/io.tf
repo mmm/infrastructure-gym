@@ -35,6 +35,10 @@ variable "ssh_keys" {
   default = []
 }
 
+variable "ansible_tarball" {
+  default = {}
+}
+
 variable "tags" {
   default = []
 }
