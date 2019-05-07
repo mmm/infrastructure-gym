@@ -11,3 +11,6 @@ variable "ssh_keys" {
   default = []
 }
 
+output "bastion_ipv4_addresses" {
+  value = "${module.bastions.instance_ips}"
+}

@@ -31,9 +31,9 @@ data "terraform_remote_state" "core" {
 #}
 
 module "bastions" {
-  source = "../../../modules/gcp/generic_instance"
+  source = "../../../modules/gcp/bastion_instance"
   name = "${var.project}-${var.environment}-bastion"
-  count = 1 
+  count = 2
   region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
@@ -52,7 +52,7 @@ module "bastions" {
 module "consul_servers" {
   source = "../../../modules/gcp/generic_instance"
   name = "${var.project}-${var.environment}-consul"
-  count = 1
+  count = 3
   region = "${var.region}"
   ssh_keys = ["${var.ssh_keys}"]
   tags = [
